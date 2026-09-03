@@ -455,6 +455,7 @@ def _prepare_review(args) -> int:
             service_context=service_context,
             usage_samples=usage_samples,
             window_policy=_window_policy(args.window_policy_json),
+            finding_ids=promotion.confirmed_finding_ids,
         )
     except PreApprovalError:
         blocked = cases.get(args.case)

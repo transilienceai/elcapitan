@@ -6,6 +6,13 @@ All notable changes to El Capitan are recorded here. Dates use ISO 8601.
 
 ### Added
 
+- One owner-authorized Azure disposable-resource golden path through scoped
+  validation, canonical package approval, durable scheduling, least-privilege
+  execution, health monitoring, independent live revalidation, exact-finding
+  certification, handoff, and verified identity/tag cleanup. Mixed-case review,
+  post-change validation, and certificate scope now remain bound to the
+  approved finding IDs, and local Azure planning accepts a complete isolated
+  service-principal contract without inheriting scanner or ambient identity.
 - AWS S3 object-versioning evidence-to-review parity. A confirmed finding can
   now link only to an exact `aws_s3_bucket_versioning` state address, materialize
   only `Disabled`/`Suspended` to `Enabled`, admit only that one in-place plan

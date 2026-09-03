@@ -211,6 +211,15 @@ scanner credentials. For this control, state must resolve one
 `aws_s3_bucket_versioning` address and the policy admits only its in-place
 status transition from `Disabled` or `Suspended` to `Enabled`.
 
+Local Azure planning may use a separate service principal through the complete
+`ELCAP_PLANNER_AZURE_CLIENT_ID`, `ELCAP_PLANNER_AZURE_CLIENT_SECRET`,
+`ELCAP_PLANNER_AZURE_TENANT_ID`, and
+`ELCAP_PLANNER_AZURE_SUBSCRIPTION_ID` contract. Partial credentials or a
+simultaneous managed-identity configuration fail before Terraform runs. The
+explicit subscription is also supplied as the non-secret
+`TF_VAR_subscription_id` for the generated disposable-baseline convention;
+scanner credentials and ambient Azure CLI sessions remain excluded.
+
 Planning never edits the supplied repository and never runs `terraform apply`.
 It copies the repository into a case artifact workspace, rejects symlinks and
 path escapes, excludes common credential and Terraform-state files, records

@@ -206,6 +206,25 @@ class ExecutionContext:
     artifact_root: Path
 
 
+def _approved_finding_ids(context: ExecutionContext) -> tuple[str, ...]:
+    if "scope" not in context.plan.body:
+        return tuple(context.case.finding_ids)
+    scope = context.plan.body.get("scope")
+    if not isinstance(scope, Mapping):
+        raise ActionPlaneError("approved plan has an invalid finding scope")
+    scoped_ids = scope.get("finding_ids")
+    if (not isinstance(scoped_ids, (tuple, list)) or not scoped_ids
+            or any(not isinstance(item, str) or not item for item in scoped_ids)
+            or len(set(scoped_ids)) != len(scoped_ids)):
+        raise ActionPlaneError("approved plan has an invalid finding scope")
+    unknown = [finding_id for finding_id in scoped_ids
+               if finding_id not in context.case.finding_ids]
+    if unknown:
+        raise ActionPlaneError(
+            "approved plan references findings outside the case: " + ", ".join(unknown))
+    return tuple(scoped_ids)
+
+
 @dataclass(frozen=True)
 class ActionStep:
     name: str
@@ -415,8 +434,26 @@ class LiveFindingProbe:
         return "live-vulnerability-revalidation"
 
     def run(self, context: ExecutionContext) -> ProbeResult:
+        findings = tuple(self.finding_store.list_for_case(context.case.case_id))
+        try:
+            scoped_ids = _approved_finding_ids(context)
+        except ActionPlaneError as exc:
+            return ProbeResult(
+                probe=self.name, target=context.case.case_id, passed=False,
+                detail=str(exc), payload={"scope": _jsonable(
+                    context.plan.body.get("scope"))})
+        by_id = {finding.finding_id: finding for finding in findings}
+        unknown = [finding_id for finding_id in scoped_ids if finding_id not in by_id]
+        if unknown:
+            return ProbeResult(
+                probe=self.name, target=context.case.case_id, passed=False,
+                detail="approved plan references findings absent from the finding store",
+                payload={"finding_ids": list(scoped_ids),
+                         "unknown_finding_ids": unknown})
+        findings = tuple(by_id[finding_id] for finding_id in scoped_ids)
+
         results = []
-        for finding in self.finding_store.list_for_case(context.case.case_id):
+        for finding in findings:
             try:
                 state = self.reader(finding, self.host_env)
                 result = evaluate_finding(finding, state, evidence_ids=())
@@ -429,9 +466,10 @@ class LiveFindingProbe:
             for result in results)
         return ProbeResult(
             probe=self.name, target=context.case.case_id, passed=passed,
-            detail=("original findings are no longer confirmed" if passed else
-                    "one or more original findings remain confirmed or unavailable"),
-            payload={"findings": results})
+            detail=("approved findings are no longer confirmed" if passed else
+                    "one or more approved findings remain confirmed or unavailable"),
+            payload={"finding_ids": [finding.finding_id for finding in findings],
+                     "findings": results})
 
 
 class HttpVerificationProbe:
@@ -509,10 +547,12 @@ class ExecutionService:
             if found.case_id != case.case_id:
                 raise ActionPlaneError(f"{name} belongs to another case")
             return found
-        return ExecutionContext(
+        context = ExecutionContext(
             case=case, plan=record("change_plan_id"), link=record("iac_link_id"),
             approval=record("approval_id"), window=record("change_window_id"),
             artifact_root=self.artifact_root)
+        _approved_finding_ids(context)
+        return context
 
     def _evidence(self, run_dir: Path, kind: str, document, *, now: str) -> str:
         return write_evidence(
@@ -751,7 +791,8 @@ class ExecutionService:
             record_type="RemediationCertificate.v1", schema_version=1,
             created_at=self.now(),
             body={"certificate_id": certificate_id, "case_id": case_id,
-                  "finding_ids": list(case.finding_ids), "plan_id": context.plan.record_id,
+                  "finding_ids": list(_approved_finding_ids(context)),
+                  "plan_id": context.plan.record_id,
                   "approval_id": context.approval.record_id,
                   "execution_id": execution_id, "verification_id": verification_id,
                   "completed_status": "remediated",

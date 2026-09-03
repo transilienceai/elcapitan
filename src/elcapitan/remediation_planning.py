@@ -444,24 +444,57 @@ class SubprocessTerraformRunner:
                     for target, source in aws_mapping.items()
                 })
             else:
-                planning_environment = {
-                    "ARM_USE_MSI": os.environ.get(
-                        "ELCAP_PLANNER_AZURE_USE_MSI", ""),
-                    "ARM_CLIENT_ID": planner_client_id,
-                    "ARM_SUBSCRIPTION_ID": os.environ.get(
-                        "ELCAP_PLANNER_AZURE_SUBSCRIPTION_ID", ""),
-                    "ARM_TENANT_ID": os.environ.get(
-                        "ELCAP_PLANNER_AZURE_TENANT_ID", ""),
-                    # Container Apps exposes an App Service-style identity endpoint,
-                    # while AzureRM otherwise falls back to the VM IMDS address.
-                    "ARM_MSI_ENDPOINT": os.environ.get(
-                        "ELCAP_PLANNER_AZURE_MSI_ENDPOINT", "") or proxy_endpoint,
-                    "ARM_MSI_API_VERSION": os.environ.get(
-                        "ELCAP_PLANNER_AZURE_MSI_API_VERSION", "") or (
-                            "2019-08-01" if identity_endpoint else ""),
-                    "IDENTITY_ENDPOINT": os.environ.get("IDENTITY_ENDPOINT", ""),
-                    "IDENTITY_HEADER": os.environ.get("IDENTITY_HEADER", ""),
+                azure_service_principal = {
+                    "ARM_CLIENT_ID": "ELCAP_PLANNER_AZURE_CLIENT_ID",
+                    "ARM_CLIENT_SECRET": "ELCAP_PLANNER_AZURE_CLIENT_SECRET",
+                    "ARM_SUBSCRIPTION_ID": "ELCAP_PLANNER_AZURE_SUBSCRIPTION_ID",
+                    "ARM_TENANT_ID": "ELCAP_PLANNER_AZURE_TENANT_ID",
                 }
+                supplied_service_principal = {
+                    source for source in azure_service_principal.values()
+                    if os.environ.get(source)
+                }
+                if supplied_service_principal:
+                    missing = sorted(
+                        source for source in azure_service_principal.values()
+                        if not os.environ.get(source))
+                    if missing:
+                        return (TerraformCheck(
+                            "plan", (self.executable, "plan"), 1,
+                            stderr=("Azure planning credentials are incomplete: "
+                                    + ", ".join(missing))),)
+                    if planner_client_id or os.environ.get(
+                            "ELCAP_PLANNER_AZURE_USE_MSI"):
+                        return (TerraformCheck(
+                            "plan", (self.executable, "plan"), 1,
+                            stderr=("Azure planning must use exactly one identity "
+                                    "mode: service principal or managed identity")),)
+                    planning_environment = {
+                        target: os.environ[source]
+                        for target, source in azure_service_principal.items()
+                    }
+                    planning_environment["ARM_USE_CLI"] = "false"
+                    planning_environment["TF_VAR_subscription_id"] = os.environ[
+                        "ELCAP_PLANNER_AZURE_SUBSCRIPTION_ID"]
+                else:
+                    planning_environment = {
+                        "ARM_USE_MSI": os.environ.get(
+                            "ELCAP_PLANNER_AZURE_USE_MSI", ""),
+                        "ARM_CLIENT_ID": planner_client_id,
+                        "ARM_SUBSCRIPTION_ID": os.environ.get(
+                            "ELCAP_PLANNER_AZURE_SUBSCRIPTION_ID", ""),
+                        "ARM_TENANT_ID": os.environ.get(
+                            "ELCAP_PLANNER_AZURE_TENANT_ID", ""),
+                        # Container Apps exposes an App Service-style identity endpoint,
+                        # while AzureRM otherwise falls back to the VM IMDS address.
+                        "ARM_MSI_ENDPOINT": os.environ.get(
+                            "ELCAP_PLANNER_AZURE_MSI_ENDPOINT", "") or proxy_endpoint,
+                        "ARM_MSI_API_VERSION": os.environ.get(
+                            "ELCAP_PLANNER_AZURE_MSI_API_VERSION", "") or (
+                                "2019-08-01" if identity_endpoint else ""),
+                        "IDENTITY_ENDPOINT": os.environ.get("IDENTITY_ENDPOINT", ""),
+                        "IDENTITY_HEADER": os.environ.get("IDENTITY_HEADER", ""),
+                    }
             environment.update({
                 key: value for key, value in planning_environment.items() if value
             })

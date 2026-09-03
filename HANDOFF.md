@@ -815,3 +815,51 @@ requirements comparison, wheel/source builds, distribution inspection, and
 `git diff --check`. See
 `docs/aws-evidence-to-review-checkpoint-2026-09-03.md`. GCP and AWS execution
 remain out of scope.
+
+## Completed checkpoint: Azure disposable-resource golden path
+
+On 2026-09-03 the owner approved one exact canonical package and digest for an
+unused, non-production Azure Storage account during a fixed 30-minute window.
+The package contained one validated public-network finding and one in-place
+transition from `Enabled` to `Disabled`; it admitted zero creates, deletes, or
+replacements. Exact tenant, subscription, resource, identity, record, and
+evidence identifiers remain only in the private trial workspace.
+
+Fresh target-tenant scanner, planner, and executor service principals separated
+duties. Scanner and planner were Reader-scoped to the exact account. Executor
+used a temporary custom role containing only `storageAccounts/read` and
+`storageAccounts/write`, with no data actions, assigned to that exact account.
+An earlier bootstrap inherited a different test-tenant context; those unused
+identities and assignments were removed and verified absent before their
+credentials were used or target configuration was changed.
+
+The normal preapproval pipeline issued the IaC link, verified plan, independent
+SRE/window/rollback records, policy decision, and canonical review package. The
+owner's package-and-digest approval produced a durable scheduled job. Once the
+approved window opened, the worker claimed it once, captured the `Enabled`
+rollback checkpoint and healthy baseline, disabled public network access,
+observed healthy ARM state, verified the property as `Disabled`, and reran the
+deterministic evaluator through the distinct scanner identity. The one approved
+finding returned `not_confirmed`; the job succeeded without rollback and the
+case reached `remediated` with post-change verification, a one-finding
+remediation certificate, and a completed originator handoff. Eight sibling
+findings remain outside the package.
+
+The pass corrected mixed-case review preparation to pass the promotion's exact
+confirmed finding IDs, added a complete isolated local Azure service-principal
+contract for Terraform planning, and bound live post-change revalidation and
+certificate issuance to the approved plan scope. Temporary mutation-scope tags
+were removed and the original tag set restored. All temporary assignments,
+custom role, service principals, app registrations, credential files, and Azure
+CLI token caches were deleted and verified absent. The final target remains
+healthy with public network access `Disabled`.
+
+The reviewable checkpoint passes 729 tests plus compile, narrow Ruff,
+JavaScript syntax, generated capability-matrix, release-tree, build,
+distribution, and whitespace checks. See
+`docs/azure-disposable-golden-path-2026-09-03.md`.
+
+AWS execution is the next checkpoint. This Azure approval grants no AWS access
+or mutation authority; bind any AWS execution to its own exact disposable
+target, fresh identities, intended change, rollback, approval, monitoring, and
+completion evidence. GCP remains out of scope.

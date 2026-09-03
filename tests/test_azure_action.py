@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from elcapitan.action_plane import ExecutionContext
+from elcapitan.action_plane import ExecutionContext, LiveFindingProbe
 from elcapitan.azure_action import (
     AzureActionError, AzureCommandResult, AzureStorageAccountClient,
     AzureStorageBlobPublicAccessDriver, AzureStorageBlobPublicAccessProbe,
@@ -214,3 +214,67 @@ def test_managed_identity_runner_refuses_wrong_subscription():
         runner=FakeManagedIdentityRunner(subscription="wrong"))
     with pytest.raises(AzureActionError, match="pinned subscription"):
         runner.run(("storage", "account", "show"))
+
+
+class FakeFinding:
+    def __init__(self, finding_id):
+        self.finding_id = finding_id
+
+
+class FakeFindingStore:
+    def __init__(self, *finding_ids):
+        self.findings = tuple(FakeFinding(finding_id) for finding_id in finding_ids)
+
+    def list_for_case(self, case_id):
+        return self.findings
+
+
+class FakeEvaluation:
+    def __init__(self, finding_id):
+        self.finding_id = finding_id
+
+    def to_dict(self):
+        return {"finding_id": self.finding_id, "status": "not_confirmed"}
+
+
+def test_live_finding_probe_revalidates_only_approved_scope(tmp_path, monkeypatch):
+    runner = FakeAzureRunner()
+    ctx, _ = context(tmp_path, runner)
+    plan = ProductRecord(
+        "PLAN-1", "CASE-1", "RemediationPlan.v1", 1, "2026-08-26T00:00:00Z",
+        {**ctx.plan.body, "scope": {"finding_ids": ["FIND-1"]}})
+    scoped = ExecutionContext(ctx.case, plan, ctx.link, ctx.approval, ctx.window,
+                              ctx.artifact_root)
+    reads = []
+    probe = LiveFindingProbe(
+        finding_store=FakeFindingStore("FIND-1", "FIND-2"), host_env={},
+        reader=lambda finding, env: reads.append(finding.finding_id) or object())
+    monkeypatch.setattr(
+        "elcapitan.action_plane.evaluate_finding",
+        lambda finding, state, evidence_ids: FakeEvaluation(finding.finding_id))
+
+    result = probe.run(scoped)
+
+    assert result.passed
+    assert reads == ["FIND-1"]
+    assert result.payload["finding_ids"] == ["FIND-1"]
+
+
+def test_live_finding_probe_fails_closed_for_unknown_approved_finding(tmp_path):
+    runner = FakeAzureRunner()
+    ctx, _ = context(tmp_path, runner)
+    plan = ProductRecord(
+        "PLAN-1", "CASE-1", "RemediationPlan.v1", 1, "2026-08-26T00:00:00Z",
+        {**ctx.plan.body, "scope": {"finding_ids": ["FIND-UNKNOWN"]}})
+    scoped = ExecutionContext(ctx.case, plan, ctx.link, ctx.approval, ctx.window,
+                              ctx.artifact_root)
+    reads = []
+    probe = LiveFindingProbe(
+        finding_store=FakeFindingStore("FIND-1"), host_env={},
+        reader=lambda finding, env: reads.append(finding.finding_id))
+
+    result = probe.run(scoped)
+
+    assert not result.passed
+    assert "outside the case" in result.detail
+    assert reads == []

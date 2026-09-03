@@ -361,6 +361,82 @@ def test_state_grounded_runner_accepts_only_one_targeted_update(tmp_path, monkey
     assert "-out=[EPHEMERAL_PLAN]" in checks[-2].argv
 
 
+def test_azure_planning_uses_only_complete_dedicated_service_principal(
+        tmp_path, monkeypatch):
+    planner = {
+        "ELCAP_PLANNER_AZURE_CLIENT_ID": "planner-client",
+        "ELCAP_PLANNER_AZURE_CLIENT_SECRET": "planner-secret",
+        "ELCAP_PLANNER_AZURE_SUBSCRIPTION_ID": "planner-subscription",
+        "ELCAP_PLANNER_AZURE_TENANT_ID": "planner-tenant",
+    }
+    for name, value in planner.items():
+        monkeypatch.setenv(name, value)
+    monkeypatch.setenv("ARM_CLIENT_ID", "ambient-client")
+    monkeypatch.setenv("AZURE_CLIENT_SECRET", "ambient-secret")
+    monkeypatch.setenv("ELCAP_SCANNER_AZURE_CLIENT_ID", "scanner-client")
+    terraform = tmp_path / "terraform"
+    terraform.write_text(
+        "#!/bin/sh\n"
+        "[ \"$ARM_CLIENT_ID\" = \"planner-client\" ] || exit 41\n"
+        "[ \"$ARM_CLIENT_SECRET\" = \"planner-secret\" ] || exit 42\n"
+        "[ \"$ARM_SUBSCRIPTION_ID\" = \"planner-subscription\" ] || exit 43\n"
+        "[ \"$ARM_TENANT_ID\" = \"planner-tenant\" ] || exit 44\n"
+        "[ \"$ARM_USE_CLI\" = \"false\" ] || exit 45\n"
+        "[ \"$TF_VAR_subscription_id\" = \"planner-subscription\" ] || exit 46\n"
+        "[ -z \"${AZURE_CLIENT_SECRET+x}\" ] || exit 46\n"
+        "[ -z \"${ELCAP_SCANNER_AZURE_CLIENT_ID+x}\" ] || exit 47\n"
+        "if [ \"$1\" = \"plan\" ]; then for arg in \"$@\"; do "
+        "case \"$arg\" in -out=*) touch \"${arg#-out=}\";; esac; done; fi\n"
+        "exit 0\n"
+    )
+    terraform.chmod(0o755)
+    (tmp_path / "storage.tf").write_text(
+        'resource "azurerm_storage_account" "corpus" {}\n')
+    link = TerraformLink(
+        resource_uid="/subscriptions/sub/resourceGroups/rg/providers/"
+                     "Microsoft.Storage/storageAccounts/account",
+        source_path="storage.tf", module_path=".",
+        resource_type="azurerm_storage_account", resource_name="corpus",
+        start_line=1, end_line=1, match_strategy="provider_type_and_literal_name",
+        confidence=1, source_sha256="a",
+    )
+
+    checks = SubprocessTerraformRunner(str(terraform)).check(tmp_path, link)
+
+    assert [item.name for item in checks] == ["fmt", "init", "validate", "plan"]
+    assert all(item.passed for item in checks)
+
+
+def test_azure_planning_rejects_partial_or_mixed_identity_contract(
+        tmp_path, monkeypatch):
+    (tmp_path / "storage.tf").write_text(
+        'resource "azurerm_storage_account" "corpus" {}\n')
+    link = TerraformLink(
+        resource_uid="/subscriptions/sub/resourceGroups/rg/providers/"
+                     "Microsoft.Storage/storageAccounts/account",
+        source_path="storage.tf", module_path=".",
+        resource_type="azurerm_storage_account", resource_name="corpus",
+        start_line=1, end_line=1, match_strategy="provider_type_and_literal_name",
+        confidence=1, source_sha256="a",
+    )
+    monkeypatch.setenv("ELCAP_PLANNER_AZURE_CLIENT_ID", "planner-client")
+
+    checks = SubprocessTerraformRunner("terraform").check(tmp_path, link)
+
+    assert len(checks) == 1
+    assert "ELCAP_PLANNER_AZURE_CLIENT_SECRET" in checks[0].stderr
+    monkeypatch.setenv("ELCAP_PLANNER_AZURE_CLIENT_SECRET", "planner-secret")
+    monkeypatch.setenv("ELCAP_PLANNER_AZURE_SUBSCRIPTION_ID", "planner-subscription")
+    monkeypatch.setenv("ELCAP_PLANNER_AZURE_TENANT_ID", "planner-tenant")
+    monkeypatch.setenv(
+        "ELCAP_PLANNER_AZURE_MANAGED_IDENTITY_CLIENT_ID", "managed-client")
+
+    checks = SubprocessTerraformRunner("terraform").check(tmp_path, link)
+
+    assert len(checks) == 1
+    assert "exactly one identity mode" in checks[0].stderr
+
+
 def test_aws_s3_state_plan_accepts_only_versioning_enablement(
         tmp_path, monkeypatch):
     monkeypatch.setenv("ELCAP_PLANNER_AWS_ACCESS_KEY_ID", "planner-id")
