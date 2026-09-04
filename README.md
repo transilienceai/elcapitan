@@ -219,9 +219,12 @@ For an AWS bucket owned by CDK/CloudFormation, use
 `--cdk-application-env-json`. The state binds the processed deployed template,
 stack, logical resource, construct ID, source path, account, and region. CDK
 synthesis runs offline with lookups disabled and no eligible ambient cloud
-credentials. The gate persists digest-bound forward and containment templates
-only when the canonical template diff is exactly the linked bucket's
-`VersioningConfiguration.Status`.
+credentials. Dependencies are installed from the copied module's lockfile with
+lifecycle scripts disabled. The gate synthesizes both the linked source and the
+one-line proposal, proves that their only template difference is the linked
+bucket's `VersioningConfiguration.Status`, and constructs the forward artifact
+from the live processed template so pre-existing source/template drift is never
+silently deployed.
 
 Local Azure planning may use a separate service principal through the complete
 `ELCAP_PLANNER_AZURE_CLIENT_ID`, `ELCAP_PLANNER_AZURE_CLIENT_SECRET`,
@@ -233,9 +236,9 @@ explicit subscription is also supplied as the non-secret
 scanner credentials and ambient Azure CLI sessions remain excluded.
 
 Planning never edits the supplied repository and never runs `terraform apply`.
-It copies the repository into a case artifact workspace, rejects symlinks and
-path escapes, excludes common credential and Terraform-state files, records
-source and proposal hashes, and advances the case to
+It copies the repository into a case artifact workspace, rejects broken or
+escaping symlinks and path escapes, excludes common credential and state files,
+records source and proposal hashes, and advances the case to
 `plan_ready` only when `terraform fmt -check`, `terraform validate`, and
 `terraform plan -refresh=false -lock=false` succeed. A failed check is retained
 as an immutable `RemediationPlanAttempt.v1`, while the case remains validated.
@@ -244,9 +247,12 @@ runner uses an isolated home with no ambient AWS or Azure credential files.
 Commands have a five-minute default timeout and bounded captured output.
 
 The CDK path likewise works in a copied artifact workspace and never runs
-`cdk deploy`. Unlike the Terraform path, it persists the exact verified
-CloudFormation templates because those package-bound artifacts are the only
-inputs the action connector may later submit.
+`cdk deploy`. It allows only repository-internal symlinks, starts without
+`node_modules`, installs exactly from `pnpm-lock.yaml` or `package-lock.json`,
+and removes installed dependencies after synthesis. Unlike the Terraform path,
+it persists the exact verified CloudFormation templates because those
+package-bound artifacts are the only inputs the action connector may later
+submit.
 
 ## Run the whole safe workflow locally
 

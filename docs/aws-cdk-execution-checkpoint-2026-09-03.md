@@ -20,11 +20,15 @@ The connector is deliberately narrower than a general CDK deployment path:
 2. A current processed stack template must identify the owning stack, logical
    resource, account, region, bucket name, and exact TypeScript CDK construct.
 3. The source materializer may add only `versioned: true` to that construct.
-4. CDK synthesis runs without cloud, model, scanner, or ambient profile
-   credentials and with lookups disabled.
-5. Removing the proposed versioning property from the synthesized template
-   must make it canonically identical to the recorded deployed template.
-6. The forward and containment templates are persisted with SHA-256 digests in
+4. Dependencies install from a checked-in pnpm or npm lockfile, with lifecycle
+   scripts disabled, inside the copied workspace.
+5. Baseline and proposed CDK synthesis run without cloud, model, scanner, or
+   ambient profile credentials and with lookups disabled.
+6. Removing the proposed versioning property from the proposed synthesis must
+   make it canonically identical to the baseline synthesis.
+7. The forward artifact is constructed from the live processed template, so
+   unrelated pre-existing source/template drift is recorded but not deployed.
+8. The forward and containment templates are persisted with SHA-256 digests in
    the review package. Any source, template, stack, account, resource, or live-
    state drift blocks execution.
 

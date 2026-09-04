@@ -445,7 +445,8 @@ def _prepare_review(args) -> int:
                 for key, value in cdk_environment.items()):
             raise ValueError("CDK application environment JSON must be a string map")
         runner = AwsCdkCloudFormationRunner(
-            (args.cdk_bin, "cdk"), timeout_seconds=args.terraform_timeout,
+            (args.cdk_bin, "--no-install", "cdk"),
+            timeout_seconds=args.terraform_timeout,
             application_environment=cdk_environment)
         linker = link_aws_cdk_s3_bucket
     else:

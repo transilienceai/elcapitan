@@ -604,22 +604,36 @@ class RemediationPlanOutcome:
     checks: tuple[TerraformCheck, ...]
 
 
-def _copy_repository(source: Path, destination: Path) -> None:
+def _copy_repository(source: Path, destination: Path, *,
+                     allow_internal_symlinks: bool = False) -> None:
     ignored = shutil.ignore_patterns(
-        ".git", ".terraform", ".venv", ".tox", ".pytest_cache", "__pycache__",
+        ".git", ".terraform", ".venv*", "venv", "venv*", ".tox",
+        ".pytest_cache", "__pycache__",
+        "node_modules", "cdk.out", "output",
         ".env", ".env.*", "*.tfstate", "*.tfstate.*", "*.pem", "*.key",
         ".elcapitan*",
     )
     shutil.copytree(source, destination, symlinks=True, ignore=ignored)
+    destination_root = destination.resolve(strict=True)
     for current, directories, names in os.walk(destination, followlinks=False):
         current_path = Path(current)
         for name in (*directories, *names):
             candidate = current_path / name
             if candidate.is_symlink():
-                raise RemediationPlanningError(
-                    f"repository workspace contains unsupported symlink: "
-                    f"{candidate.relative_to(destination)}"
-                )
+                if not allow_internal_symlinks:
+                    raise RemediationPlanningError(
+                        "repository workspace contains unsupported symlink: "
+                        f"{candidate.relative_to(destination)}")
+                try:
+                    target = candidate.resolve(strict=True)
+                except FileNotFoundError as exc:
+                    raise RemediationPlanningError(
+                        "repository workspace contains a broken symlink: "
+                        f"{candidate.relative_to(destination)}") from exc
+                if not target.is_relative_to(destination_root):
+                    raise RemediationPlanningError(
+                        "repository workspace contains an escaping symlink: "
+                        f"{candidate.relative_to(destination)}")
 
 
 def _materialize_control_patch(*, original: str, proposed: str,
@@ -983,7 +997,9 @@ class RemediationPlanningService:
             link=link, rule_ids=rule_ids)
 
         workspace = run_dir / "workspace"
-        _copy_repository(repository_root, workspace)
+        _copy_repository(
+            repository_root, workspace,
+            allow_internal_symlinks=cdk_planning)
         try:
             workspace_source = safe_resolve(workspace, link.source_path)
         except PathEscape as exc:
@@ -1010,8 +1026,13 @@ class RemediationPlanningService:
         change_ref = (
             f"{namespace}/workspace/{link.source_path}#sha256:{after_sha256}"
         )
-        checks = self.runner.check(
-            workspace, link, state_document=state_document)
+        if cdk_planning:
+            checks = self.runner.check(
+                workspace, link, state_document=state_document,
+                original_source=original_source)
+        else:
+            checks = self.runner.check(
+                workspace, link, state_document=state_document)
         if not checks:
             raise RemediationPlanningError("infrastructure runner returned no checks")
         check_evidence = []

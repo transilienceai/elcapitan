@@ -37,12 +37,16 @@ Current registry authority:
 - only S3 object versioning has AWS planning or execution capability; its action
   path is contract tested and has not been run against production.
 
-The current AWS action checkpoint passes **742 tests**, compile and
+The current AWS action checkpoint passes **743 tests**, compile and
 the repository's narrow Ruff gates, JavaScript syntax checks, generated-matrix
 and release-tree checks, wheel/source builds, distribution inspection, and
 `git diff --check`. The action extension used local fixtures and made no AWS
-mutation. Owner-authorized discovery used only the safer read-only role; the
-administrator-backed default profile was not used for inventory. The preceding Guided Shadow pass made owner-authorized read-only
+mutation. The pre-existing reader role could not be assumed without its
+ExternalId, so owner-authorized discovery minted temporary federated sessions
+with exact read-only inline policies; the default IAM user acted only as the
+STS broker. One direct default-identity IAM read inspected the existing
+CloudFormation service role after a restricted token failed; no resource
+inventory call used the broad identity. The preceding Guided Shadow pass made owner-authorized read-only
 Azure management-plane queries against one test subscription to build observed
 exposure context. That
 inventory pass made no cloud mutation, data-plane read, model call, approval,
@@ -876,12 +880,16 @@ No AWS mutation, identity creation, deployment, tag, or data-plane object read
 has occurred.
 
 The planning route accepts `ElCapitanAwsCdkState.v1`, links one processed stack
-logical resource to one exact TypeScript `s3.Bucket` construct, inserts only
-`versioned: true`, synthesizes with lookups disabled and no eligible cloud or
-model credentials, and compares canonical templates. It persists forward and
-containment templates only when the sole change is
-`VersioningConfiguration.Status = Enabled`. Source, state, template, account,
-region, stack, and logical-resource digests remain bound to review.
+logical resource to one exact TypeScript `s3.Bucket` construct, verifies the
+source digest, and inserts only `versioned: true`. In the copied workspace it
+installs dependencies from the checked-in lockfile with lifecycle scripts
+disabled, synthesizes the baseline and proposal with lookups disabled and no
+eligible cloud or model credentials, and proves their only difference is
+`VersioningConfiguration.Status = Enabled`. The forward artifact is then built
+from the live processed template, preventing unrelated pre-existing
+source/template drift from entering the update. Source, state, baseline,
+proposal, live template, account, region, stack, and logical-resource digests
+remain bound to review.
 
 The action connector accepts only a complete `ELCAP_EXECUTOR_AWS_*` session,
 rejects profiles/shared AWS files/metadata credentials and other role classes,
@@ -899,10 +907,12 @@ a first enable, the workflow records `contained`, keeps the case blocked for
 human follow-up, and never claims checkpoint restoration. Exact rollback is
 available only when the approved prior state was already `Suspended`.
 
-The next step is not deployment. Build a private, exact production package that
-names the account, region, bucket, stack, logical resource, fresh executor role,
-unchanged service-role baseline, one-property templates and digests, write-
-freeze window, owner end-to-end tests, containment route, and approval command.
-Restate all of those fields and stop for a new package-digest approval before
-any identity mutation or AWS write. See
+Owner-authorized read-only validation and a real-source rehearsal have now
+produced the private, exact production package. It names the account, region,
+bucket, stack, logical resource, proposed fresh executor role, unchanged
+service-role baseline, one-property templates and digests, write-freeze window,
+owner end-to-end tests, containment route, and approval command. No AWS identity
+or resource was created or changed. The next step is still not deployment:
+restate the complete package and stop for its new digest-bound approval before
+any identity mutation, source edit, or AWS write. See
 `docs/aws-cdk-execution-checkpoint-2026-09-03.md`.

@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -42,6 +43,7 @@ def state_document():
         "construct_id": "AppBucket",
         "source_path": "platform/lib/static-stack.ts",
         "module_path": "platform",
+        "source_sha256": hashlib.sha256(source_text().encode()).hexdigest(),
         "account_id": "111122223333",
         "region": "us-east-1",
         "executor_role_arn": (
@@ -72,6 +74,8 @@ def repository(tmp_path: Path) -> Path:
     source = root / "platform" / "lib" / "static-stack.ts"
     source.parent.mkdir(parents=True)
     source.write_text(source_text(), encoding="utf-8")
+    (root / "platform" / "pnpm-lock.yaml").write_text(
+        "lockfileVersion: '9.0'\n", encoding="utf-8")
     return root
 
 
@@ -125,6 +129,23 @@ def test_template_scope_rejects_any_sibling_change():
         )
 
 
+def test_template_scope_does_not_deploy_preexisting_source_template_drift():
+    deployed = deployed_template()
+    deployed["Resources"]["Policy"]["Metadata"] = {"comment": "deployed"}
+    baseline = deployed_template()
+    baseline["Resources"]["Policy"]["Metadata"] = {"comment": "source"}
+    proposed = json.loads(json.dumps(baseline))
+    proposed["Resources"][LOGICAL_ID]["Properties"][
+        "VersioningConfiguration"] = {"Status": "Enabled"}
+    forward, _rollback = verify_s3_versioning_template_change(
+        deployed_template=deployed,
+        baseline_synthesized_template=baseline,
+        proposed_template=proposed,
+        logical_resource_id=LOGICAL_ID,
+    )
+    assert forward["Resources"]["Policy"]["Metadata"] == {"comment": "deployed"}
+
+
 def test_cdk_link_rejects_wrong_live_bucket(tmp_path):
     root = repository(tmp_path)
     document = state_document()
@@ -156,8 +177,13 @@ def test_cdk_runner_synthesizes_without_ambient_cloud_credentials(
 
     def run(argv, **kwargs):
         calls.append((argv, kwargs))
+        if argv[0] == "pnpm":
+            return SimpleNamespace(returncode=0, stdout="", stderr="")
+        document = (
+            deployed_template()
+            if str(argv[-1]).endswith("cdk_baseline_synth") else proposed)
         return SimpleNamespace(
-            returncode=0, stdout=json.dumps(proposed), stderr="")
+            returncode=0, stdout=json.dumps(document), stderr="")
 
     monkeypatch.setattr("elcapitan.aws_cdk.subprocess.run", run)
     checks = AwsCdkCloudFormationRunner(
@@ -166,12 +192,16 @@ def test_cdk_runner_synthesizes_without_ambient_cloud_credentials(
             "AWS_PROFILE": "must-not-pass",
             "AWS_ACCESS_KEY_ID": "must-not-pass",
             "OPENAI_API_KEY": "must-not-pass",
-        }).check(root, link, state_document=state_document())
+        }).check(
+            root, link, state_document=state_document(),
+            original_source=source_text())
     assert [check.name for check in checks] == [
-        "cdk_synth", "cloudformation_scope", "rollback_template"]
+        "dependency_install", "cdk_baseline_synth", "cdk_synth",
+        "cloudformation_scope", "rollback_template"]
     assert all(check.passed for check in checks)
-    argv, kwargs = calls[0]
+    argv, kwargs = calls[1]
     assert "--no-lookups" in argv
+    assert "--no-staging" not in argv
     assert kwargs["env"]["DOMAIN"] == "example.test"
     assert kwargs["env"]["CDK_DEFAULT_ACCOUNT"] == "111122223333"
     assert "AWS_PROFILE" not in kwargs["env"]
@@ -179,3 +209,4 @@ def test_cdk_runner_synthesizes_without_ambient_cloud_credentials(
     assert "OPENAI_API_KEY" not in kwargs["env"]
     assert kwargs["env"]["HOME"] != os.environ.get("HOME")
     assert kwargs["env"]["AWS_SHARED_CREDENTIALS_FILE"] == os.devnull
+    assert not (root / "platform" / "node_modules").exists()

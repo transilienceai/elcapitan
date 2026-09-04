@@ -137,9 +137,11 @@ class ExactAWSPlanRunner:
 
 
 class ExactAwsCdkPlanRunner:
-    def check(self, workspace, link, *, state_document=None):
+    def check(self, workspace, link, *, state_document=None,
+              original_source=None):
         changed = (workspace / link.source_path).read_text()
         assert changed.count("versioned:         true") == 1
+        assert original_source.count("versioned:") == 0
         deployed = state_document["deployed_template"]
         proposed = json.loads(json.dumps(deployed))
         proposed["Resources"][link.logical_resource_id]["Properties"][
@@ -214,6 +216,20 @@ def _terraform_state():
     }
 
 
+def _cdk_source():
+    return """import * as s3 from 'aws-cdk-lib/aws-s3';
+export class StaticStack {
+  build() {
+    this.appBucket = new s3.Bucket(this, 'AppBucket', {
+      bucketName:        `training-assets`,
+      encryption:        s3.BucketEncryption.S3_MANAGED,
+      enforceSSL:        true,
+    });
+  }
+}
+"""
+
+
 def _cdk_state():
     return {
         "format": "ElCapitanAwsCdkState.v1",
@@ -222,6 +238,7 @@ def _cdk_state():
         "construct_id": "AppBucket",
         "source_path": "platform/lib/static-stack.ts",
         "module_path": "platform",
+        "source_sha256": sha256_bytes(_cdk_source().encode()),
         "account_id": "111122223333",
         "region": "us-east-1",
         "executor_role_arn": (
@@ -375,17 +392,7 @@ def test_aws_s3_cdk_finding_reaches_cloudformation_scoped_review_package(tmp_pat
     repository = tmp_path / "customer-cdk"
     source = repository / "platform" / "lib" / "static-stack.ts"
     source.parent.mkdir(parents=True)
-    source.write_text("""import * as s3 from 'aws-cdk-lib/aws-s3';
-export class StaticStack {
-  build() {
-    this.appBucket = new s3.Bucket(this, 'AppBucket', {
-      bucketName:        `training-assets`,
-      encryption:        s3.BucketEncryption.S3_MANAGED,
-      enforceSSL:        true,
-    });
-  }
-}
-""")
+    source.write_text(_cdk_source())
     outcome = PreApprovalOrchestrator(
         case_store=cases, finding_store=findings, record_store=records,
         artifact_root=artifacts, runtime=AWSReviewRuntime(),
