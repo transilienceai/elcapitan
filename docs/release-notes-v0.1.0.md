@@ -7,8 +7,9 @@
 - This is a self-hosted technical preview, not an autonomous replacement for a
   DevOps or SRE team and not a public multi-tenant SaaS.
 - Read-only live validation covers 72 deterministic controls (35 Azure, 37 AWS),
-  but only four controls support verified remediation planning and only two
-  Azure Storage controls have a proven live action connector.
+  but only four controls support verified remediation planning and only three
+  controls have action connectors: two E2E-measured Azure Storage paths and one
+  contract-tested, not-yet-executed AWS S3 path.
 - Validation capability never grants planning or execution authority.
 - Shared-token browser authentication is for local demonstration and bounded
   pilots, not production customer approval.
@@ -31,8 +32,9 @@
   scanner-export entry paths; and a no-write import preview before confirmation.
 - Bounded Azure and AWS collectors with minimized typed evidence and
   deterministic fail-closed evaluation.
-- Conservative Terraform linkage, isolated complete-file proposals, and real
-  format, validation, and no-refresh plan checks.
+- Conservative Terraform or AWS CDK/CloudFormation linkage, isolated
+  complete-file proposals, and engine-specific format, synthesis, validation,
+  and exact-scope checks.
 - Independent SRE, change-window, rollback, human-decision, execution,
   verification, certificate, and originator-handoff records.
 - Durable runtime budgets, idempotent replay, equivalent-failure circuit
@@ -85,6 +87,13 @@ The AWS S3 evidence-to-review checkpoint is preserved in `a736e5b`. It passes
 wheel/source build, distribution-inspection, locked-requirements, and diff
 checks. It uses only recorded contract fixtures and grants no AWS execution
 authority.
+
+The subsequent AWS CDK/CloudFormation action checkpoint adds a digest-bound S3
+versioning connector, isolated exact-role executor credentials, control-plane
+monitoring, post-change validation, and honest irreversible-change containment.
+Its full local verification result is recorded in the current handoff. No AWS
+write was performed; the first production package remains subject to a fresh
+digest-bound approval.
 
 The public runtime, CI, and release workflow use pinned Terraform 1.16.1. The
 upgrade replaces Terraform 1.16.0's fixed-high vulnerable embedded gRPC-Go with

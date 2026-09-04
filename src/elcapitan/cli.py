@@ -27,6 +27,7 @@ from .azure_action import (
     AzureStoragePublicNetworkDriver, AzureStoragePublicNetworkProbe,
     ManagedIdentityAzureCommandRunner, SubprocessAzureCommandRunner,
 )
+from .aws_cdk import AwsCdkCloudFormationRunner, link_aws_cdk_s3_bucket
 from .case_store import SqliteCaseStore
 from .case_validation import CaseValidationService
 from .cases import (
@@ -122,6 +123,16 @@ def _parser() -> argparse.ArgumentParser:
     review.add_argument("--usage-days", type=int, default=28)
     review.add_argument("--service-context-json", type=Path, required=True)
     review.add_argument("--state-json", type=Path)
+    review.add_argument(
+        "--iac-engine",
+        choices=("terraform", "aws-cdk-cloudformation"), default="terraform",
+        help="infrastructure engine used by the authoritative source",
+    )
+    review.add_argument(
+        "--cdk-application-env-json", type=Path,
+        help="explicit application environment for offline CDK synthesis",
+    )
+    review.add_argument("--cdk-bin", default="npx")
     review.add_argument("--window-policy-json", type=Path)
     review.add_argument("--runtime", choices=("recorded", "live", "openai"),
                         default="recorded")
@@ -313,6 +324,7 @@ def _parser() -> argparse.ArgumentParser:
 
 _RESULT_FILES = {
     "TerraformRemediationProposal.v1": "terraform-remediation-proposal.json",
+    "IaCRemediationProposal.v1": "terraform-remediation-proposal.json",
     "SREReview.v1": "sre-review.json",
     "ChangeWindowSelection.v1": "change-window-selection.json",
     "RollbackReview.v1": "rollback-review.json",
@@ -420,6 +432,29 @@ def _prepare_review(args) -> int:
             for role, (provider, model) in selected.items()
         }))
     state = json.loads(args.state_json.read_text()) if args.state_json else None
+    if args.iac_engine == "aws-cdk-cloudformation":
+        if state is None:
+            raise ValueError("AWS CDK/CloudFormation planning requires --state-json")
+        if args.cdk_application_env_json is None:
+            raise ValueError(
+                "AWS CDK/CloudFormation planning requires --cdk-application-env-json")
+        cdk_environment = json.loads(
+            args.cdk_application_env_json.read_text(encoding="utf-8"))
+        if not isinstance(cdk_environment, dict) or any(
+                not isinstance(key, str) or not isinstance(value, str)
+                for key, value in cdk_environment.items()):
+            raise ValueError("CDK application environment JSON must be a string map")
+        runner = AwsCdkCloudFormationRunner(
+            (args.cdk_bin, "cdk"), timeout_seconds=args.terraform_timeout,
+            application_environment=cdk_environment)
+        linker = link_aws_cdk_s3_bucket
+    else:
+        if args.cdk_application_env_json is not None:
+            raise ValueError(
+                "--cdk-application-env-json requires --iac-engine aws-cdk-cloudformation")
+        runner = SubprocessTerraformRunner(
+            args.terraform_bin, timeout_seconds=args.terraform_timeout)
+        linker = None
     service_context = json.loads(args.service_context_json.read_text())
     if not isinstance(service_context, dict):
         raise ValueError("service context JSON must be an object")
@@ -443,14 +478,18 @@ def _prepare_review(args) -> int:
             resource_uid, start=utc_text(start), end=utc_text(end),
             host_env=os.environ, metric=args.azure_metric)
     try:
-        outcome = PreApprovalOrchestrator(
+        orchestrator_args = dict(
             case_store=cases, finding_store=findings,
             record_store=records, artifact_root=args.artifacts, runtime=runtime,
-            runner=SubprocessTerraformRunner(
-                args.terraform_bin, timeout_seconds=args.terraform_timeout),
+            runner=runner,
             now=_now, agent_run_policy=_agent_run_policy(args),
             minimum_distinct_agent_models=args.minimum_distinct_models,
-        ).prepare(
+            require_state_grounded_plan=(
+                args.iac_engine == "aws-cdk-cloudformation"),
+        )
+        if linker is not None:
+            orchestrator_args["linker"] = linker
+        outcome = PreApprovalOrchestrator(**orchestrator_args).prepare(
             args.case, repository=args.repo, state_document=state,
             service_context=service_context,
             usage_samples=usage_samples,

@@ -8,7 +8,7 @@ be tagged or published.
 
 | Gate | Status | Evidence or next proof |
 |---|---|---|
-| Full Python suite | verified | 725 tests passed at the AWS S3 evidence-to-review checkpoint; 538 passed independently in the clean-clone release rehearsal at `44dd79e` |
+| Full Python suite | verified | 742 tests passed at the AWS CDK/CloudFormation action checkpoint; 538 passed independently in the clean-clone release rehearsal at `44dd79e` |
 | Wheel and source distribution | verified | The post-E2E slice and clean-clone rehearsal both built wheel and source distributions successfully; rehearsal artifacts were inspected and checksummed at `44dd79e` |
 | Syntax/static checks | verified | Clean-clone compile and narrow Ruff error checks passed at `44dd79e`; repository-wide Ruff formatting remains migration debt |
 | Dependency review | implemented | GitHub dependency review rejects moderate-or-higher vulnerabilities on pull requests |

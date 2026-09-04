@@ -33,19 +33,25 @@ Validation coverage never implies mutation coverage. For example,
 `sqlserver_tde_encrypted_with_cmk` supports live validation but explicitly has
 no remediation-planning or execution capability.
 
-The AWS S3 pack validates seven bucket controls. Object versioning has the one
-AWS evidence-to-review path: after live confirmation and contextual priority,
-the planner requires an exact Terraform state owner of type
-`aws_s3_bucket_versioning`. It materializes only a literal
-`Disabled`/`Suspended` to `Enabled` status change in that linked block. The
-ephemeral plan gate accepts exactly one in-place update and exactly the nested
-path `versioning_configuration[0].status`; create, delete, replacement, MFA
-Delete, sibling-resource, and additional-attribute changes fail closed. The
-provider-neutral SRE, window, rollback, model-diversity, evidence-chain, and
-human-review gates can then issue `HumanReviewPackage.v1` with execution still
-`not_started`. This planning/package contract is tested locally; it has not
-been measured against a live AWS Terraform estate and grants no AWS execution
-authority.
+The AWS S3 pack validates seven bucket controls. Object versioning is the one
+AWS control with planning and separately gated execution capability. The
+Terraform route requires an exact `aws_s3_bucket_versioning` state owner and
+admits only its in-place `Disabled`/`Suspended` to `Enabled` status change. The
+CDK route binds a current processed CloudFormation template, stack logical
+resource, and exact TypeScript construct; offline synthesis must change only
+`VersioningConfiguration.Status` on that resource. Create, delete,
+replacement, MFA Delete, sibling-resource, and additional-attribute changes
+fail closed in either route.
+
+The CDK route persists digest-bound forward and containment templates for the
+canonical human gate and the exact-resource CloudFormation connector. The
+connector requires a separately supplied short-lived executor role, pins the
+existing stack service-role state, waits through the approved first-enable
+write freeze, monitors control-plane health, and revalidates versioning. Since
+a first enable cannot restore the never-versioned state, failure recovery to
+`Suspended` is recorded as containment and a blocked case—not successful
+rollback. This action contract is tested locally; no production AWS mutation
+has been performed.
 
 The other six S3 controls validate KMS default encryption, server access
 logging, event notifications, at least one enabled lifecycle rule, Object

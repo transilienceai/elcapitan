@@ -50,7 +50,7 @@ the time of this blueprint it reports:
 |---|---:|---|
 | Deterministic live-validation rules | 72 | 35 Azure, 37 AWS |
 | Verified remediation-planning rules | 4 | 3 Azure Storage, 1 AWS S3 |
-| Live execution rules | 2 | Azure Storage only; disabled from the shadow service |
+| Live execution rules | 3 | 2 Azure Storage, 1 AWS S3; all disabled from the shadow service |
 
 The documentation and UI must never collapse these three columns into a single
 "supported" badge. Each control also receives an evidence grade:
@@ -167,7 +167,7 @@ or arbitrary agent graph designer.
 ### Deliberately deferred
 
 - Unattended production changes.
-- Broad AWS execution.
+- Broad AWS execution beyond the one separately gated S3 versioning path.
 - Generic remediation for every resource sharing a cloud type.
 - Multi-tenant hosted SaaS guarantees.
 - Marketplace integrations and ticketing/chat notifications.

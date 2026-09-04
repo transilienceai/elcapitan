@@ -18,6 +18,7 @@ from .product_records import ProductRecordStore
 from .remediation_planning import (
     RemediationPlanOutcome, RemediationPlanningService, TerraformRunner,
 )
+from .terraform_linker import link_terraform_resource
 from .workflow import CaseStore, WorkflowCoordinator
 
 
@@ -38,6 +39,7 @@ class PreApprovalOrchestrator:
                  agent_run_policy: AgentRunPolicy | None = None,
                  minimum_distinct_agent_models: int = 1,
                  require_state_grounded_plan: bool = False,
+                 linker=link_terraform_resource,
                  id_factory: Callable[[str], str] = numeric_id) -> None:
         managed_runtime = (runtime if getattr(runtime, "agent_run_managed", False)
                            else AgentRunRuntime(
@@ -53,7 +55,8 @@ class PreApprovalOrchestrator:
         self.planning = RemediationPlanningService(
             case_store=case_store, finding_store=finding_store,
             record_store=record_store, artifact_root=artifact_root,
-            runtime=managed_runtime, runner=runner, now=now, id_factory=id_factory)
+            runtime=managed_runtime, runner=runner, now=now, id_factory=id_factory,
+            linker=linker)
         self.sre = SREReviewService(**common)
         self.window = ChangeWindowService(**common)
         self.rollback = RollbackReviewService(**common)

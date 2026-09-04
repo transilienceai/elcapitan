@@ -4,6 +4,9 @@ from pathlib import Path
 from elcapitan.agents import (
     AgentResult, AgentResultStatus, AgentRole, AgentTask,
 )
+from elcapitan.aws_cdk import (
+    link_aws_cdk_s3_bucket, verify_s3_versioning_template_change,
+)
 from elcapitan.case_store import SqliteCaseStore
 from elcapitan.case_validation import (
     CaseValidationService, FindingValidationStatus,
@@ -16,6 +19,7 @@ from elcapitan.intake import IntakeContext, RemediationIntake
 from elcapitan.observability import UsageSample, WindowPolicy
 from elcapitan.orchestration import PreApprovalOrchestrator
 from elcapitan.product_records import SqliteProductRecordStore
+from elcapitan.hashing import canonical_json, sha256_bytes, sha256_file
 from elcapitan.remediation_planning import TerraformCheck
 
 
@@ -39,15 +43,24 @@ class AWSReviewRuntime:
     def run(self, task: AgentTask) -> AgentResult:
         if task.role is AgentRole.REMEDIATION_ENGINEER:
             source = str(task.metadata["source"])
+            if task.metadata.get("iac_engine") == "aws_cdk_cloudformation":
+                replacement = source.replace(
+                    "      enforceSSL:        true,",
+                    "      versioned:         true,\n"
+                    "      enforceSSL:        true,")
+                rollout = ["execute only the reviewed CloudFormation stack update"]
+            else:
+                replacement = source.replace(
+                    'status = "Disabled"', 'status = "Enabled"')
+                rollout = ["apply only the state-linked S3 versioning resource"]
             output = {
                 "objective": "enable versioning for the S3 bucket",
                 "files": {
-                    task.metadata["link"]["source_path"]:
-                        source.replace('status = "Disabled"', 'status = "Enabled"'),
+                    task.metadata["link"]["source_path"]: replacement,
                 },
                 "prerequisites": ["retain the captured state digest"],
                 "steps": ["set the versioning status to Enabled"],
-                "rollout_steps": ["apply only the state-linked S3 versioning resource"],
+                "rollout_steps": rollout,
                 "verification_steps": ["confirm GetBucketVersioning reports Enabled"],
                 "rollback_steps": ["set the versioning status to Suspended"],
                 "rollback_triggers": ["the targeted Terraform apply fails"],
@@ -123,6 +136,53 @@ class ExactAWSPlanRunner:
         )
 
 
+class ExactAwsCdkPlanRunner:
+    def check(self, workspace, link, *, state_document=None):
+        changed = (workspace / link.source_path).read_text()
+        assert changed.count("versioned:         true") == 1
+        deployed = state_document["deployed_template"]
+        proposed = json.loads(json.dumps(deployed))
+        proposed["Resources"][link.logical_resource_id]["Properties"][
+            "VersioningConfiguration"] = {"Status": "Enabled"}
+        forward, rollback = verify_s3_versioning_template_change(
+            deployed_template=deployed,
+            proposed_template=proposed,
+            logical_resource_id=link.logical_resource_id,
+        )
+        artifacts = workspace / ".elcapitan-plan"
+        artifacts.mkdir()
+        forward_path = artifacts / "forward-template.json"
+        rollback_path = artifacts / "containment-template.json"
+        forward_path.write_bytes(canonical_json(forward))
+        rollback_path.write_bytes(canonical_json(rollback))
+        details = {
+            "stack_name": link.stack_name,
+            "logical_resource_id": link.logical_resource_id,
+            "account_id": link.account_id,
+            "region": link.region,
+            "executor_role_arn": link.executor_role_arn,
+            "cloudformation_service_role_arn": (
+                link.cloudformation_service_role_arn),
+            "forward_template_path": ".elcapitan-plan/forward-template.json",
+            "forward_template_sha256": sha256_file(forward_path),
+            "rollback_template_path": ".elcapitan-plan/containment-template.json",
+            "rollback_template_sha256": sha256_file(rollback_path),
+            "deployed_template_sha256": sha256_bytes(canonical_json(deployed)),
+            "rollback_mode": "containment",
+            "write_freeze_seconds": 900,
+            "approved_change": (
+                f"Resources.{link.logical_resource_id}.Properties."
+                "VersioningConfiguration.Status"),
+        }
+        return (
+            TerraformCheck("cdk_synth", ("cdk", "synth"), 0),
+            TerraformCheck(
+                "cloudformation_scope", ("template-diff",), 0,
+                details=details),
+            TerraformCheck("rollback_template", ("containment",), 0),
+        )
+
+
 def _raw_finding():
     document = json.loads(AWS_FIXTURE.read_text())
     document["metadata"]["event_code"] = "s3_bucket_object_versioning"
@@ -151,6 +211,32 @@ def _terraform_state():
                 }],
             }}],
         }],
+    }
+
+
+def _cdk_state():
+    return {
+        "format": "ElCapitanAwsCdkState.v1",
+        "stack_name": "TrainingStatic",
+        "logical_resource_id": "AssetsBucketA1B2C3",
+        "construct_id": "AppBucket",
+        "source_path": "platform/lib/static-stack.ts",
+        "module_path": "platform",
+        "account_id": "111122223333",
+        "region": "us-east-1",
+        "executor_role_arn": (
+            "arn:aws:iam::111122223333:role/elcapitan-s3-versioning-executor"),
+        "cloudformation_service_role_arn": None,
+        "deployed_template": {
+            "Resources": {
+                "AssetsBucketA1B2C3": {
+                    "Type": "AWS::S3::Bucket",
+                    "Properties": {"BucketName": "training-assets"},
+                    "DeletionPolicy": "Retain",
+                    "UpdateReplacePolicy": "Retain",
+                },
+            },
+        },
     }
 
 
@@ -259,3 +345,80 @@ resource "aws_s3_bucket_versioning" "assets" {
     )
     assert (repository / "bucket.tf").read_text().count(
         'status = "Disabled"') == 1
+
+
+def test_aws_s3_cdk_finding_reaches_cloudformation_scoped_review_package(tmp_path):
+    database = tmp_path / "product.db"
+    cases = SqliteCaseStore(database)
+    findings = SqliteFindingStore(database)
+    records = SqliteProductRecordStore(database)
+    ids = Ids()
+    artifacts = tmp_path / "artifacts"
+    opened = RemediationIntake(
+        case_store=cases, finding_store=findings, artifact_root=artifacts,
+        collector=Collector("prowler", "5.37.1", "scanner-reader"),
+        now=lambda: NOW, id_factory=ids,
+    ).ingest(
+        _raw_finding(), tenant_id="TEN-AWS-CDK",
+        context=IntakeContext(
+            asset_criticality=0.9, internet_exposed=False,
+            service_ids=("shasta-web",)),
+    )
+    validated = CaseValidationService(
+        case_store=cases, finding_store=findings, record_store=records,
+        artifact_root=artifacts, now=lambda: NOW, id_factory=ids,
+        reader=lambda finding, env: CloudState(
+            provider="aws", resource_uid=BUCKET_ARN, region="us-east-1",
+            config=(("versioning", "{}"),)),
+    ).validate(opened.case.case_id, host_env={})
+
+    repository = tmp_path / "customer-cdk"
+    source = repository / "platform" / "lib" / "static-stack.ts"
+    source.parent.mkdir(parents=True)
+    source.write_text("""import * as s3 from 'aws-cdk-lib/aws-s3';
+export class StaticStack {
+  build() {
+    this.appBucket = new s3.Bucket(this, 'AppBucket', {
+      bucketName:        `training-assets`,
+      encryption:        s3.BucketEncryption.S3_MANAGED,
+      enforceSSL:        true,
+    });
+  }
+}
+""")
+    outcome = PreApprovalOrchestrator(
+        case_store=cases, finding_store=findings, record_store=records,
+        artifact_root=artifacts, runtime=AWSReviewRuntime(),
+        runner=ExactAwsCdkPlanRunner(), now=lambda: NOW,
+        minimum_distinct_agent_models=2,
+        require_state_grounded_plan=True,
+        linker=link_aws_cdk_s3_bucket, id_factory=ids,
+    ).prepare(
+        validated.case.case_id, repository=repository,
+        state_document=_cdk_state(),
+        service_context={
+            "service": "shasta-web", "environment": "production",
+            "owner": "platform-team",
+            "health_signals": ["both CloudFront aliases return expected UI"],
+            "dependencies": ["CloudFront", "S3"],
+            "evidence_phase": "pre_change",
+        },
+        usage_samples=(UsageSample(
+            timestamp="2026-09-03T11:00:00Z", requests=0),),
+        window_policy=WindowPolicy(
+            notice_hours=0, fixed_start_delay_minutes=60,
+            duration_minutes=30),
+    )
+    package = outcome.human_review.review_package
+    assert outcome.human_review.case.state is CaseState.AWAITING_APPROVAL
+    link = package.body["iac_link"]["body"]["link"]
+    assert link["iac_engine"] == "aws_cdk_cloudformation"
+    assert link["resource_address"] == "TrainingStatic.AssetsBucketA1B2C3"
+    plan = package.body["remediation_plan"]["body"]
+    assert plan["verification"]["mode"] == "cloudformation_template_scope"
+    assert plan["deployment"]["rollback_mode"] == "containment"
+    assert plan["deployment"]["forward_template_sha256"]
+    assert any(
+        check["name"] == "cloudformation_scope" and check["passed"] is True
+        for check in plan["checks"])
+    assert source.read_text().count("versioned:") == 0

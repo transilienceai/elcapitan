@@ -51,6 +51,9 @@ def test_builtin_registry_is_composed_from_service_packs():
                for item in registry.list()) == 5
     assert registry.get(
         "azure", "keyvault_logging_enabled").evidence_grade == "contract_tested"
+    s3_versioning = registry.get("aws", "s3_bucket_object_versioning")
+    assert s3_versioning.remediation_planning is True
+    assert s3_versioning.live_execution is True
 
 
 S3_CONTRACT = json.loads(

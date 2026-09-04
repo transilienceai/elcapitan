@@ -3,7 +3,7 @@
 This file is generated from the installed control-pack registry. Do not edit it by hand.
 `elcapitan capabilities` is the machine-readable authority.
 
-Version: `0.1.0` · validation: 72 · planning: 4 · execution: 2
+Version: `0.1.0` · validation: 72 · planning: 4 · execution: 3
 
 Validation, planning, and execution are independent columns. Evidence grade describes the strongest completed proof; it does not grant mutation authority.
 
@@ -44,7 +44,7 @@ Validation, planning, and execution are independent columns. Evidence grade desc
 | AWS | `s3_bucket_lifecycle_enabled` | s3 bucket | yes | no | no | Contract tested |
 | AWS | `s3_bucket_no_mfa_delete` | s3 bucket | yes | no | no | Contract tested |
 | AWS | `s3_bucket_object_lock` | s3 bucket | yes | no | no | Contract tested |
-| AWS | `s3_bucket_object_versioning` | s3 bucket | yes | yes | no | E2E measured |
+| AWS | `s3_bucket_object_versioning` | s3 bucket | yes | yes | yes | E2E measured |
 | AWS | `s3_bucket_server_access_logging_enabled` | s3 bucket | yes | no | no | Contract tested |
 | AZURE | `app_client_certificates_on` | app service web app | yes | no | no | E2E measured |
 | AZURE | `app_ensure_auth_is_set_up` | app service web app | yes | no | no | E2E measured |

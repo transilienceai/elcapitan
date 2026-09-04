@@ -217,7 +217,7 @@ class SREReviewService(_AgentStage):
             raise PreApprovalError("case remediation plan has the wrong owner or type")
         if plan.body.get("status") != "verified" or not all(
                 check.get("passed") is True for check in plan.body.get("checks", ())):
-            raise PreApprovalError("SRE review requires a verified Terraform plan")
+            raise PreApprovalError("SRE review requires a verified infrastructure plan")
         required_context = ("service", "environment", "health_signals", "dependencies", "owner")
         missing_context = [name for name in required_context if name not in service_context]
         if missing_context:
@@ -603,11 +603,11 @@ class HumanReviewGate:
         plan_ok = bool(plan and plan.body.get("status") == "verified" and
                        plan.body.get("checks") and
                        all(item.get("passed") is True for item in plan.body["checks"]))
-        checks.append({"check": "terraform_verification", "passed": plan_ok,
-                       "detail": "fmt/init/validate/plan must all pass"})
+        checks.append({"check": "iac_verification", "passed": plan_ok,
+                       "detail": "every engine-specific verification check must pass"})
         if self.require_state_grounded_plan:
             verification = (plan.body.get("verification") if plan else {}) or {}
-            state_plan_ok = (
+            terraform_state_plan_ok = (
                 verification.get("mode") == "targeted_state_plan"
                 and verification.get("plan_artifact_persisted") is False
                 and bool(verification.get("resource_address"))
@@ -615,11 +615,23 @@ class HumanReviewGate:
                 and any(item.get("name") == "plan_scope" and item.get("passed") is True
                         for item in (plan.body.get("checks", ()) if plan else ()))
             )
+            cloudformation_state_plan_ok = (
+                verification.get("mode") == "cloudformation_template_scope"
+                and verification.get("plan_artifact_persisted") is True
+                and verification.get("iac_engine") == "aws_cdk_cloudformation"
+                and bool(verification.get("resource_address"))
+                and bool(verification.get("state_sha256"))
+                and any(
+                    item.get("name") == "cloudformation_scope"
+                    and item.get("passed") is True
+                    for item in (plan.body.get("checks", ()) if plan else ()))
+            )
+            state_plan_ok = terraform_state_plan_ok or cloudformation_state_plan_ok
             checks.append({
                 "check": "state_grounded_plan_scope", "passed": state_plan_ok,
                 "detail": (
-                    "ephemeral plan must contain only the allowed in-place attribute "
-                    "update to the state-linked resource"),
+                    "the engine-specific plan must contain only the allowed update "
+                    "to the state-linked resource"),
             })
         sre_ok = bool(
             records.get("sre_review_id")

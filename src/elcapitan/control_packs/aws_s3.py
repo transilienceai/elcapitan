@@ -183,7 +183,7 @@ AWS_S3_PACK = ControlPack(
             resource_family="s3_bucket",
             resource_types=("awss3bucket",),
             live_validation=True, remediation_planning=True,
-            live_execution=False, evidence_aspects=("versioning",),
+            live_execution=True, evidence_aspects=("versioning",),
             evaluator=_object_versioning,
         ),
         _validation_control("s3_bucket_kms_encryption", "encryption", _kms_encryption),

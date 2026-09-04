@@ -21,6 +21,7 @@ class JobState(StrEnum):
     RUNNING = "running"
     SUCCEEDED = "succeeded"
     ROLLED_BACK = "rolled_back"
+    CONTAINED = "contained"
     FAILED = "failed"
     MISSED = "missed"
 
@@ -138,7 +139,9 @@ class SqliteExecutionJobStore:
 
     def complete(self, job_id: str, *, worker_id: str, state: JobState,
                  detail: str = "") -> ExecutionJob:
-        if state not in {JobState.SUCCEEDED, JobState.ROLLED_BACK, JobState.FAILED}:
+        if state not in {
+                JobState.SUCCEEDED, JobState.ROLLED_BACK,
+                JobState.CONTAINED, JobState.FAILED}:
             raise ValueError("job completion state must be terminal")
         with closing(self._connect()) as connection:
             with connection:
@@ -216,7 +219,9 @@ class ScheduledExecutionWorker:
         try:
             result = self.execute(job)
             rolled_back = bool(getattr(result, "rolled_back", False))
-            state = JobState.ROLLED_BACK if rolled_back else JobState.SUCCEEDED
+            contained = bool(getattr(result, "contained", False))
+            state = (JobState.CONTAINED if contained else
+                     JobState.ROLLED_BACK if rolled_back else JobState.SUCCEEDED)
             completed = self.job_store.complete(
                 job.job_id, worker_id=self.worker_id, state=state,
                 detail=str(getattr(getattr(result, "case", None), "state", state.value)))

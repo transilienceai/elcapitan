@@ -147,6 +147,11 @@ POST_CHANGE_REVIEW = {
 
 OUTPUT_CONTRACTS = {
     "TerraformRemediationProposal.v1": TERRAFORM_REMEDIATION_PROPOSAL,
+    # The file/rollout contract is intentionally engine-neutral even though
+    # the first implementation and historical name were Terraform-specific.
+    # CDK/CloudFormation uses the same strict shape and a distinct contract id
+    # so review records do not mislabel their source language.
+    "IaCRemediationProposal.v1": TERRAFORM_REMEDIATION_PROPOSAL,
     "SREReview.v1": SRE_REVIEW,
     "ChangeWindowSelection.v1": CHANGE_WINDOW_SELECTION,
     "RollbackReview.v1": ROLLBACK_REVIEW,

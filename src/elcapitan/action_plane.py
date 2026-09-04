@@ -522,6 +522,7 @@ class ExecutionOutcome:
     verification_record: ProductRecord | None
     handoff_record: ProductRecord | None
     rolled_back: bool
+    contained: bool = False
 
 
 class ExecutionService:
@@ -600,14 +601,32 @@ class ExecutionService:
                 record_ids={"rollback_failure_id": rollback_id},
                 evidence_ids=all_evidence)
             raise ActionPlaneError(detail)
+        checkpoint_restored = rollback_step.payload.get(
+            "checkpoint_restored", True) if rollback_step.payload else True
         verification_id = self.id_factory("VERIFY")
         verification = ProductRecord(
             record_id=verification_id, case_id=case_id,
             record_type="RollbackVerification.v1", schema_version=1, created_at=self.now(),
-            body={"verification_id": verification_id, "checkpoint_restored": True,
+            body={"verification_id": verification_id,
+                  "checkpoint_restored": bool(checkpoint_restored),
+                  "containment_achieved": bool(
+                      rollback_step.payload.get("containment_achieved", False)
+                      if rollback_step.payload else False),
                   "service_recovered": True, "reason": reason},
             evidence_ids=all_evidence)
         self.record_store.put(verification)
+        if not checkpoint_restored:
+            detail = (
+                "containment succeeded, but the irreversible change cannot restore "
+                "the exact checkpoint; human follow-up is required")
+            case = self.workflow.advance(
+                case_id, CaseTransition.BLOCK,
+                event_id=self.id_factory("EVT"), occurred_at=self.now(),
+                actor="execution-policy",
+                record_ids={"verification_result_id": verification_id},
+                evidence_ids=all_evidence, detail=detail)
+            return ExecutionOutcome(
+                case, rollback_record, verification, None, False, True)
         case = self.workflow.advance(
             case_id, CaseTransition.COMPLETE_ROLLBACK,
             event_id=self.id_factory("EVT"), occurred_at=self.now(),

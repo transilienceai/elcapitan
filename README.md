@@ -107,7 +107,7 @@ UV_CACHE_DIR=/private/tmp/elcapitan-uv-cache \
 ```
 
 The review gate shows only the eight records referenced by the case's current
-human-review package, verifies and displays the exact Terraform source diff,
+human-review package, verifies and displays the exact infrastructure source diff,
 and requires a typed package-specific confirmation for approval or rejection.
 Approval creates an immutable package-hash-bound `ChangeApproval.v1` and a
 durable scheduled job. Rejection creates an immutable `ChangeRejection.v1` and
@@ -127,9 +127,11 @@ The current implementation can:
 - calculate a transparent, configurable priority;
 - re-query supported Azure and AWS resources with a scoped read-only identity;
 - deterministically confirm, clear, or block supported finding rules;
-- link a validated Azure or AWS resource to one unambiguous Terraform block;
-- constrain a remediation proposal to the linked Terraform source file;
-- verify the isolated change with Terraform format, validation, and plan gates;
+- link a validated resource to one unambiguous Terraform block or admitted AWS
+  CDK construct and deployed CloudFormation logical resource;
+- constrain a remediation proposal to the linked infrastructure source file;
+- verify the isolated change with engine-specific format, synthesis,
+  validation, and scope gates;
 - run an independent SRE review against explicit service health context;
 - derive bounded future change-window candidates from historical usage;
 - independently verify rollback steps and observable rollback triggers;
@@ -211,6 +213,16 @@ scanner credentials. For this control, state must resolve one
 `aws_s3_bucket_versioning` address and the policy admits only its in-place
 status transition from `Disabled` or `Suspended` to `Enabled`.
 
+For an AWS bucket owned by CDK/CloudFormation, use
+`prepare-review --iac-engine aws-cdk-cloudformation` with an
+`ElCapitanAwsCdkState.v1` state document and an explicit string-map
+`--cdk-application-env-json`. The state binds the processed deployed template,
+stack, logical resource, construct ID, source path, account, and region. CDK
+synthesis runs offline with lookups disabled and no eligible ambient cloud
+credentials. The gate persists digest-bound forward and containment templates
+only when the canonical template diff is exactly the linked bucket's
+`VersioningConfiguration.Status`.
+
 Local Azure planning may use a separate service principal through the complete
 `ELCAP_PLANNER_AZURE_CLIENT_ID`, `ELCAP_PLANNER_AZURE_CLIENT_SECRET`,
 `ELCAP_PLANNER_AZURE_TENANT_ID`, and
@@ -230,6 +242,11 @@ as an immutable `RemediationPlanAttempt.v1`, while the case remains validated.
 Provider initialization uses `-backend=false -lockfile=readonly`, and the local
 runner uses an isolated home with no ambient AWS or Azure credential files.
 Commands have a five-minute default timeout and bounded captured output.
+
+The CDK path likewise works in a copied artifact workspace and never runs
+`cdk deploy`. Unlike the Terraform path, it persists the exact verified
+CloudFormation templates because those package-bound artifacts are the only
+inputs the action connector may later submit.
 
 ## Run the whole safe workflow locally
 
@@ -400,6 +417,29 @@ unless its resource were deliberately retagged into the lab scope. Additional
 Azure resource types require separately reviewed drivers, health contracts,
 and rollback implementations. Production workers should replace the ambient
 CLI session with short-lived, case-scoped workload identity credentials.
+
+## AWS S3 execution connector
+
+S3 object versioning now has one contract-tested CDK/CloudFormation action
+connector. It pins the bucket ARN, account, region, stack, logical resource,
+deployed-template digest, package-approved forward/containment template
+digests, exact short-lived caller role, and the stack's existing service-role
+state. It accepts only a complete `ELCAP_EXECUTOR_AWS_*` session and excludes
+ambient profiles, shared AWS files, scanner/planner sessions, model keys, and
+other-cloud credentials.
+
+The connector waits for CloudFormation, observes stack and S3 control-plane
+health, honors the approved 15-minute first-enable write freeze, verifies
+`GetBucketVersioning`, and feeds the normal deterministic post-change
+validation and certificate path. First-time enablement cannot be undone.
+Recovery sets versioning to `Suspended`; that outcome is recorded as contained
+and blocked for human follow-up, never as exact checkpoint restoration. See the
+[dated AWS execution checkpoint](docs/aws-cdk-execution-checkpoint-2026-09-03.md).
+
+No production AWS update was performed for this checkpoint. A live run still
+requires a final package that names the private target, identity, window,
+owner tests, containment route, and exact digest, followed by a new explicit
+approval.
 
 See [the product architecture](docs/product-architecture.md) for the system
 boundary and first PR-only vertical slice. The retired capability probe is

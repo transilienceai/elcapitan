@@ -6,6 +6,13 @@ All notable changes to El Capitan are recorded here. Dates use ISO 8601.
 
 ### Added
 
+- One contract-tested AWS S3 object-versioning action path through exact CDK
+  construct and deployed CloudFormation-resource linkage, offline synthesis,
+  one-property template proof, digest-bound human approval, an isolated pinned
+  executor role, stack/S3 monitoring, deterministic post-change validation,
+  and completion certification. First enablement's irreversible semantics are
+  explicit: recovery to `Suspended` becomes a contained, blocked outcome rather
+  than a false exact-rollback claim. No production AWS mutation was performed.
 - One owner-authorized Azure disposable-resource golden path through scoped
   validation, canonical package approval, durable scheduling, least-privilege
   execution, health monitoring, independent live revalidation, exact-finding

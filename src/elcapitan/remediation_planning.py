@@ -74,6 +74,7 @@ class TerraformCheck:
     exit_code: int
     stdout: str = ""
     stderr: str = ""
+    details: Mapping | None = None
 
     @property
     def passed(self) -> bool:
@@ -87,6 +88,7 @@ class TerraformCheck:
             "stdout": self.stdout,
             "stderr": self.stderr,
             "passed": self.passed,
+            "details": _jsonable(self.details or {}),
         }
 
 
@@ -664,6 +666,15 @@ def _materialize_control_patch(*, original: str, proposed: str,
             "".join((*lines[:start], replacement_block, *lines[end:])),
             "deterministic_control_patch",
         )
+    if (getattr(link, "iac_engine", "") == "aws_cdk_cloudformation"
+            and link.resource_type == "AWS::S3::Bucket"
+            and rule_ids == {"s3_bucket_object_versioning"}):
+        from .aws_cdk import materialize_cdk_s3_versioning
+        return (
+            materialize_cdk_s3_versioning(
+                original=original, proposed=proposed, link=link),
+            "deterministic_control_patch",
+        )
     return proposed, "agent_source_replacement"
 
 
@@ -832,12 +843,13 @@ class RemediationPlanningService:
 
         source_path = safe_resolve(repository_root, link.source_path)
         original_source = source_path.read_text(encoding="utf-8")
+        iac_engine = getattr(link, "iac_engine", "terraform")
         source_ref = write_evidence(
-            run_dir, self.id_factory("EVD"), "terraform_source_before",
+            run_dir, self.id_factory("EVD"), "iac_source_before",
             source_path.read_bytes(), self.collector, now=now,
         )
         link_ref = write_evidence(
-            run_dir, self.id_factory("EVD"), "terraform_resource_link",
+            run_dir, self.id_factory("EVD"), "iac_resource_link",
             canonical_json(link.to_dict()), self.collector, now=now,
         )
         link_record = ProductRecord(
@@ -883,16 +895,21 @@ class RemediationPlanningService:
         scoped_validation = dict(validation.body)
         scoped_validation["findings"] = [
             validation_findings[finding.finding_id] for finding in findings]
+        cdk_planning = iac_engine == "aws_cdk_cloudformation"
         task = AgentTask(
             task_id=task_id,
             case_id=case_id,
             role=AgentRole.REMEDIATION_ENGINEER,
-            objective="Prepare a minimal Terraform remediation and reversible rollout plan",
-            output_contract="TerraformRemediationProposal.v1",
+            objective=(
+                "Prepare a minimal CDK/CloudFormation remediation and bounded "
+                "containment plan" if cdk_planning else
+                "Prepare a minimal Terraform remediation and reversible rollout plan"),
+            output_contract=("IaCRemediationProposal.v1" if cdk_planning else
+                             "TerraformRemediationProposal.v1"),
             input_record_ids=input_records,
             evidence_ids=input_evidence,
             constraints=(
-                "modify only the linked Terraform source file",
+                "modify only the linked infrastructure source file",
                 "do not apply infrastructure changes",
                 "include verification, rollback steps, and rollback triggers",
                 "return the complete linked file and preserve all unrelated content",
@@ -902,6 +919,7 @@ class RemediationPlanningService:
             ),
             metadata={
                 "provider": provider,
+                "iac_engine": iac_engine,
                 "resource_uid": resource_uid,
                 "link": link.to_dict(),
                 "source": original_source,
@@ -929,8 +947,7 @@ class RemediationPlanningService:
             raise RemediationPlanningError(f"remediation agent did not succeed: {detail}")
         if source_ref.evidence_id not in result.evidence_cited:
             raise RemediationPlanningError(
-                "successful remediation agent did not cite the linked Terraform source"
-            )
+                "successful remediation agent did not cite the linked infrastructure source")
 
         supplied_files = result.output.get("files")
         if isinstance(supplied_files, Mapping):
@@ -956,9 +973,11 @@ class RemediationPlanningService:
             )
         proposed_replacement = files[link.source_path]
         if not isinstance(proposed_replacement, str) or not proposed_replacement:
-            raise RemediationPlanningError("replacement Terraform source must be non-empty text")
+            raise RemediationPlanningError(
+                "replacement infrastructure source must be non-empty text")
         if len(proposed_replacement.encode("utf-8")) > 2 * 1024 * 1024:
-            raise RemediationPlanningError("replacement Terraform source exceeds 2 MiB")
+            raise RemediationPlanningError(
+                "replacement infrastructure source exceeds 2 MiB")
         replacement, source_materialization = _materialize_control_patch(
             original=original_source, proposed=proposed_replacement,
             link=link, rule_ids=rule_ids)
@@ -994,11 +1013,11 @@ class RemediationPlanningService:
         checks = self.runner.check(
             workspace, link, state_document=state_document)
         if not checks:
-            raise RemediationPlanningError("Terraform runner returned no checks")
+            raise RemediationPlanningError("infrastructure runner returned no checks")
         check_evidence = []
         for check in checks:
             ref = write_evidence(
-                run_dir, self.id_factory("EVD"), f"terraform_{check.name}",
+                run_dir, self.id_factory("EVD"), f"iac_{check.name}",
                 canonical_json(check.to_dict()), self.collector, now=now,
             )
             check_evidence.append(ref.evidence_id)
@@ -1010,15 +1029,21 @@ class RemediationPlanningService:
             result.output, plan_id=plan_id, change_ref=change_ref,
             evidence_ids=plan_evidence,
         )
+        cloudformation_scope = next(
+            (check.details for check in checks
+             if check.name == "cloudformation_scope" and check.passed), None)
         body = {
             "status": "verified" if all(check.passed for check in checks) else "rejected",
             "verification": {
-                "mode": ("targeted_state_plan"
-                         if SubprocessTerraformRunner._raw_state(state_document)
-                         else "offline_plan_without_state"),
+                "mode": (
+                    "cloudformation_template_scope" if cdk_planning else
+                    "targeted_state_plan"
+                    if SubprocessTerraformRunner._raw_state(state_document)
+                    else "offline_plan_without_state"),
                 "resource_address": link.resource_address,
                 "state_sha256": link.state_sha256,
-                "plan_artifact_persisted": False,
+                "plan_artifact_persisted": bool(cdk_planning),
+                "iac_engine": iac_engine,
             },
             "plan": _plan_to_dict(plan),
             "link_record_id": link_id,
@@ -1042,6 +1067,7 @@ class RemediationPlanningService:
                 "validation_record_id": validation_id,
             },
             "checks": [check.to_dict() for check in checks],
+            "deployment": _jsonable(cloudformation_scope or {}),
             "artifact_namespace": namespace,
             "review_feedback_record_id": feedback.record_id if feedback else None,
         }

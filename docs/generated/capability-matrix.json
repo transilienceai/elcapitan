@@ -591,7 +591,7 @@
         "versioning"
       ],
       "evidence_grade": "e2e_measured",
-      "live_execution": false,
+      "live_execution": true,
       "live_validation": true,
       "pack_id": "aws-s3",
       "provider": "aws",
@@ -1205,7 +1205,7 @@
       "contract_tested_export_observed": 5,
       "e2e_measured": 30
     },
-    "live_execution": 2,
+    "live_execution": 3,
     "live_validation": 72,
     "providers": {
       "aws": 37,

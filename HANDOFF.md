@@ -2,11 +2,11 @@
 
 **Prepared:** 2026-09-03
 
-**Checkpoint parent:** `f21a51e` (`feat(shadow): add guided evidence-to-outcome trial`)
+**Checkpoint parent:** `664b707` (`Refresh overview for Azure golden path`)
 
 **Release direction:** self-hosted `v0.1.0` technical preview with explicit
-Azure/AWS validation breadth, AWS S3 evidence-to-review packaging, Azure-only
-live execution, and evidence grades
+Azure/AWS validation breadth, one measured Azure golden path, one
+contract-tested AWS S3 action path, and explicit evidence grades
 
 This file is the durable context for a fresh Codex session. Read it completely,
 then read `README.md`, `docs/public-release-v0.1.md`,
@@ -16,33 +16,33 @@ completed work from an earlier conversation.
 
 ## Resume here — authoritative current checkpoint
 
-The Guided Shadow Trial, exact-resource asset-context prioritization, Azure live
-validation, and evidence-to-outcome UI checkpoint is preserved in `f21a51e`.
-The AWS-only evidence-to-review checkpoint is complete on top of that commit:
-S3 object versioning now has exact Terraform state/IaC linking, deterministic
-source materialization, a fail-closed nested plan-scope gate, provider-isolated
-planner credentials, and a contract-tested path through the canonical
-`HumanReviewPackage.v1` gate. Do not reset, reconstruct, split, or overwrite
-either checkpoint. The owner screen recording remains an untracked local review
+The Guided Shadow Trial, exact-resource asset-context prioritization, AWS
+evidence-to-review checkpoint, and completed Azure disposable golden path are
+preserved through `664b707`. S3 object versioning now also has a local,
+contract-tested AWS CDK/CloudFormation action path from exact deployed-template
+linkage through monitoring, post-change validation, and certification. No AWS
+mutation has occurred. Do not reset, reconstruct, split, or overwrite these
+checkpoints. The owner screen recording remains an untracked local review
 artifact and must not be committed.
 
 Current registry authority:
 
 - **72 deterministic validation controls:** 35 Azure and 37 AWS;
 - **4 remediation-planning controls:** 3 Azure Storage and 1 AWS S3;
-- **2 live-execution controls:** Azure Storage only;
+- **3 live-execution controls:** 2 Azure Storage and 1 AWS S3;
 - evidence grades: 30 E2E measured, 37 contract tested, and 5 contract tested
   plus export observed;
 - AWS validation: 7 S3, 8 RDS DB-instance, 20 EC2 security-group, and 2 EBS
   volume controls;
-- only S3 object versioning has AWS planning capability; no AWS control has
-  live-execution capability.
+- only S3 object versioning has AWS planning or execution capability; its action
+  path is contract tested and has not been run against production.
 
-The current AWS checkpoint passes **725 tests**, compile and
+The current AWS action checkpoint passes **742 tests**, compile and
 the repository's narrow Ruff gates, JavaScript syntax checks, generated-matrix
 and release-tree checks, wheel/source builds, distribution inspection, and
-`git diff --check`. The AWS extension used only local recorded fixtures and made
-no AWS request. The preceding Guided Shadow pass made owner-authorized read-only
+`git diff --check`. The action extension used local fixtures and made no AWS
+mutation. Owner-authorized discovery used only the safer read-only role; the
+administrator-backed default profile was not used for inventory. The preceding Guided Shadow pass made owner-authorized read-only
 Azure management-plane queries against one test subscription to build observed
 exposure context. That
 inventory pass made no cloud mutation, data-plane read, model call, approval,
@@ -121,8 +121,8 @@ The honest current product promise is:
 2. Correlate and prioritize resource-oriented cases.
 3. Re-query explicitly supported controls with a bounded read-only identity.
 4. Persist minimized, typed, immutable evidence and decision records.
-5. For explicitly supported controls, link one exact Terraform resource and
-   prepare a verified remediation package.
+5. For explicitly supported controls, link one exact Terraform or admitted
+   CDK/CloudFormation resource and prepare a verified remediation package.
 6. Run independent SRE, change-window, and rollback review.
 7. Stop at a package-hash-bound human decision by default.
 8. Execute only through a separately proven connector, identity, health
@@ -859,7 +859,50 @@ JavaScript syntax, generated capability-matrix, release-tree, build,
 distribution, and whitespace checks. See
 `docs/azure-disposable-golden-path-2026-09-03.md`.
 
-AWS execution is the next checkpoint. This Azure approval grants no AWS access
+At that checkpoint, AWS execution was next. This Azure approval grants no AWS access
 or mutation authority; bind any AWS execution to its own exact disposable
 target, fresh identities, intended change, rollback, approval, monitoring, and
 completion evidence. GCP remains out of scope.
+
+## Completed local checkpoint: AWS CDK/CloudFormation action contract
+
+On 2026-09-03 the owner selected an owner-testable production application for
+the first AWS pilot, accepted S3 first-enable irreversibility, and authorized
+local implementation plus read-only discovery. Azure is parked. Discovery
+identified one small, owner-testable, private application bucket owned by an
+existing CDK/CloudFormation stack. Private account, resource, host, traffic,
+identity, and package values must remain outside public repository artifacts.
+No AWS mutation, identity creation, deployment, tag, or data-plane object read
+has occurred.
+
+The planning route accepts `ElCapitanAwsCdkState.v1`, links one processed stack
+logical resource to one exact TypeScript `s3.Bucket` construct, inserts only
+`versioned: true`, synthesizes with lookups disabled and no eligible cloud or
+model credentials, and compares canonical templates. It persists forward and
+containment templates only when the sole change is
+`VersioningConfiguration.Status = Enabled`. Source, state, template, account,
+region, stack, and logical-resource digests remain bound to review.
+
+The action connector accepts only a complete `ELCAP_EXECUTOR_AWS_*` session,
+rejects profiles/shared AWS files/metadata credentials and other role classes,
+requires the exact approved short-lived caller role, and pins the stack's
+existing CloudFormation service-role state without attaching a new role. It
+rechecks the deployed template and live versioning state, submits only the
+approved template, waits for CloudFormation and the 15-minute first-enable
+interval, monitors stack/S3 health, probes `GetBucketVersioning`, then uses the
+normal deterministic revalidation, release-audit, certificate, and handoff
+path.
+
+AWS does not permit a bucket to return to the never-versioned state after first
+enablement. The recovery artifact therefore sets `Suspended`. If invoked after
+a first enable, the workflow records `contained`, keeps the case blocked for
+human follow-up, and never claims checkpoint restoration. Exact rollback is
+available only when the approved prior state was already `Suspended`.
+
+The next step is not deployment. Build a private, exact production package that
+names the account, region, bucket, stack, logical resource, fresh executor role,
+unchanged service-role baseline, one-property templates and digests, write-
+freeze window, owner end-to-end tests, containment route, and approval command.
+Restate all of those fields and stop for a new package-digest approval before
+any identity mutation or AWS write. See
+`docs/aws-cdk-execution-checkpoint-2026-09-03.md`.

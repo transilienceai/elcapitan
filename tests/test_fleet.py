@@ -40,6 +40,10 @@ def test_capability_registry_is_explicit_and_fail_closed():
     capability = registry.get("azure", "storage_account_public_network_access_disabled")
     assert capability.live_validation is True
     assert capability.live_execution is True
+    s3 = registry.get("aws", "s3_bucket_object_versioning")
+    assert s3.live_validation is True
+    assert s3.remediation_planning is True
+    assert s3.live_execution is True
     sql = registry.get("azure", "sqlserver_tde_encrypted_with_cmk")
     assert sql.live_validation is True
     assert sql.remediation_planning is False

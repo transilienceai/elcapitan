@@ -37,7 +37,7 @@ provider-neutral while each service retains its exact evidence semantics.
 
 | Provider | Rule | Live validation | Live execution |
 |---|---|---:|---:|
-| AWS | `s3_bucket_object_versioning` | yes | no |
+| AWS | `s3_bucket_object_versioning` | yes | separately gated |
 | AWS | `s3_bucket_kms_encryption` | yes | no |
 | AWS | `s3_bucket_server_access_logging_enabled` | yes | no |
 | AWS | `s3_bucket_event_notifications_enabled` | yes | no |
@@ -85,14 +85,15 @@ database inventory, and the TDE state of every user database. The immutable
 Incomplete, denied, malformed, or out-of-scope reads block validation rather
 than producing a partial result.
 
-The seven S3 controls reuse one bounded bucket-state capture. The six new
+The seven S3 controls reuse one bounded bucket-state capture. The six newer
 controls are contract tested; only object versioning currently carries an
-E2E-measured validation grade and remediation-planning capability. Its
-state-grounded plan and canonical review-package path are contract tested: the
-only admitted Terraform change is one
-`aws_s3_bucket_versioning.versioning_configuration[0].status` transition from
-`Disabled` or `Suspended` to `Enabled`. No AWS control has live-execution
-capability.
+E2E-measured validation grade plus planning and separately gated execution
+capability. Its Terraform route admits one state-grounded
+`versioning_configuration[0].status` transition. Its CDK route admits one
+deployed-template-grounded `VersioningConfiguration.Status` transition and
+persists exact forward/containment artifacts. The connector is contract tested;
+no production AWS execution has been measured, and recovery from a first
+enable is honestly recorded as containment rather than exact rollback.
 
 The eight RDS controls use one `DescribeDBInstances` call scoped to the exact
 DB-instance ARN and its ARN-derived region. They are contract tested and
