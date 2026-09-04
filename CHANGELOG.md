@@ -13,8 +13,9 @@ All notable changes to El Capitan are recorded here. Dates use ISO 8601.
   pinned executor role, stack/S3 monitoring, deterministic post-change
   validation, and completion certification. First enablement's irreversible
   semantics are explicit: recovery to `Suspended` becomes a contained, blocked
-  outcome rather than a false exact-rollback claim. No production AWS mutation
-  was performed.
+  outcome rather than a false exact-rollback claim. The first exact production
+  package is now approved and durably scheduled; its reviewed source patch and
+  package-bound executor role are present, but the stack update has not started.
 - One owner-authorized Azure disposable-resource golden path through scoped
   validation, canonical package approval, durable scheduling, least-privilege
   execution, health monitoring, independent live revalidation, exact-finding

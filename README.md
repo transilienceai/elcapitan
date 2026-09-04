@@ -442,10 +442,11 @@ Recovery sets versioning to `Suspended`; that outcome is recorded as contained
 and blocked for human follow-up, never as exact checkpoint restoration. See the
 [dated AWS execution checkpoint](docs/aws-cdk-execution-checkpoint-2026-09-03.md).
 
-No production AWS update was performed for this checkpoint. A live run still
-requires a final package that names the private target, identity, window,
-owner tests, containment route, and exact digest, followed by a new explicit
-approval.
+No production stack update was performed for this checkpoint. The first final
+package now names the private target, identity, window, owner tests,
+containment route, and exact digest; after explicit approval, its reviewed
+source patch and package-bound executor role were created and the update was
+durably scheduled. It still cannot start before the approved window.
 
 See [the product architecture](docs/product-architecture.md) for the system
 boundary and first PR-only vertical slice. The retired capability probe is

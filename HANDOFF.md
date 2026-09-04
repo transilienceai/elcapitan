@@ -907,12 +907,18 @@ a first enable, the workflow records `contained`, keeps the case blocked for
 human follow-up, and never claims checkpoint restoration. Exact rollback is
 available only when the approved prior state was already `Suspended`.
 
-Owner-authorized read-only validation and a real-source rehearsal have now
-produced the private, exact production package. It names the account, region,
-bucket, stack, logical resource, proposed fresh executor role, unchanged
-service-role baseline, one-property templates and digests, write-freeze window,
-owner end-to-end tests, containment route, and approval command. No AWS identity
-or resource was created or changed. The next step is still not deployment:
-restate the complete package and stop for its new digest-bound approval before
-any identity mutation, source edit, or AWS write. See
+Owner-authorized read-only validation and a real-source rehearsal produced the
+private, exact production package. It names the account, region, bucket, stack,
+logical resource, fresh executor role, unchanged service-role baseline,
+one-property templates and digests, write-freeze window, owner end-to-end tests,
+containment route, and approval command. The owner supplied the exact
+package-and-digest approval. The byte-identical one-line source patch was
+committed in the authoritative repository, the exact digest-bound executor
+role was created and assumption-tested, and the canonical case was durably
+scheduled for its approved window. The production stack update has not started.
+The one-shot worker must repeat every binding check at window start, wait 15
+minutes after first enablement, run both HTTPS and independently federated
+finding checks, and require the owner's post-deployment E2E attestation before
+certification. A failed or missing attestation by the recovery cutoff invokes
+the approved `Suspended` containment route. See
 `docs/aws-cdk-execution-checkpoint-2026-09-03.md`.

@@ -68,4 +68,7 @@ write, the operator must receive and approve one final package that restates:
 - the irreversible first-enable fact and `Suspended` containment route; and
 - the approval command bound to the final package digest.
 
-Until that separate approval is received, execution remains `not_started`.
+That separate package has now received its exact digest-bound approval. Its
+reviewed source patch and package-bound executor role are present, and the
+canonical job is durably scheduled. The production stack update remains
+`not_started` until the approved window begins.
