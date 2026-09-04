@@ -5,21 +5,28 @@ from pathlib import Path
 import pytest
 
 from elcapitan.action_plane import (
-    ActionStep, DeploymentCheckpoint, ExecutionContext, ExecutionService,
+    ActionStep,
+    DeploymentCheckpoint,
+    ExecutionContext,
+    ExecutionService,
     HealthObservation,
 )
 from elcapitan.agents import RecordedContractRuntime
 from elcapitan.aws_action import (
-    AwsActionError, AwsCommandResult, AwsS3CloudFormationClient,
-    AwsS3CloudFormationIdentity, AwsS3VersioningCloudFormationDriver,
-    AwsS3VersioningHealthMonitor, AwsS3VersioningProbe,
-    SubprocessAwsCommandRunner, aws_executor_environment,
+    AwsActionError,
+    AwsCommandResult,
+    AwsS3CloudFormationClient,
+    AwsS3CloudFormationIdentity,
+    AwsS3VersioningCloudFormationDriver,
+    AwsS3VersioningHealthMonitor,
+    AwsS3VersioningProbe,
+    SubprocessAwsCommandRunner,
+    aws_executor_environment,
 )
 from elcapitan.case_store import SqliteCaseStore
 from elcapitan.cases import CaseState, ChangeWindow, RemediationCase
 from elcapitan.hashing import canonical_json, sha256_bytes, sha256_file
 from elcapitan.product_records import ProductRecord, SqliteProductRecordStore
-
 
 ACCOUNT = "111122223333"
 BUCKET = "training-assets"
@@ -182,6 +189,32 @@ def test_executor_environment_is_complete_and_excludes_profiles(monkeypatch):
     assert environment["AWS_CONFIG_FILE"] == os.devnull
     runner = SubprocessAwsCommandRunner(host_env=host)
     assert runner.environment == environment
+
+
+def test_subprocess_runner_refreshes_executor_environment_for_every_call(monkeypatch):
+    issued = iter(("first-session", "second-session"))
+    environments = []
+
+    def provider():
+        token = next(issued)
+        return {
+            "ELCAP_EXECUTOR_AWS_ACCESS_KEY_ID": "executor-id",
+            "ELCAP_EXECUTOR_AWS_SECRET_ACCESS_KEY": "executor-secret",
+            "ELCAP_EXECUTOR_AWS_SESSION_TOKEN": token,
+        }
+
+    def run(argv, **kwargs):
+        environments.append(kwargs["env"])
+        return type("Completed", (), {
+            "returncode": 0, "stdout": "{}", "stderr": "",
+        })()
+
+    monkeypatch.setattr("elcapitan.aws_action.subprocess.run", run)
+    runner = SubprocessAwsCommandRunner(host_env=provider)
+    assert runner.run(("sts", "get-caller-identity")).exit_code == 0
+    assert runner.run(("s3api", "get-bucket-versioning")).exit_code == 0
+    assert [environment["AWS_SESSION_TOKEN"] for environment in environments] == [
+        "first-session", "second-session"]
 
 
 class QueueRunner:

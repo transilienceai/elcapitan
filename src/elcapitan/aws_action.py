@@ -6,12 +6,16 @@ import os
 import re
 import subprocess
 import time
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Mapping, Protocol
+from typing import Protocol
 
 from .action_plane import (
-    ActionStep, DeploymentCheckpoint, ExecutionContext, HealthObservation,
+    ActionStep,
+    DeploymentCheckpoint,
+    ExecutionContext,
+    HealthObservation,
     ProbeResult,
 )
 from .hashing import canonical_json, sha256_bytes, sha256_file
@@ -68,13 +72,20 @@ def aws_executor_environment(host_env: Mapping[str, str]) -> dict[str, str]:
 class SubprocessAwsCommandRunner:
     """Run bounded AWS CLI calls with only the dedicated executor session."""
 
-    def __init__(self, *, host_env: Mapping[str, str], executable: str = "aws",
+    def __init__(self, *,
+                 host_env: Mapping[str, str] | Callable[[], Mapping[str, str]],
+                 executable: str = "aws",
                  timeout_seconds: float = 180) -> None:
         if not executable or timeout_seconds <= 0:
             raise ValueError("AWS CLI executable and positive timeout are required")
         self.executable = executable
         self.timeout_seconds = timeout_seconds
-        self.environment = aws_executor_environment(host_env)
+        self._host_env = host_env
+
+    @property
+    def environment(self) -> dict[str, str]:
+        host_env = self._host_env() if callable(self._host_env) else self._host_env
+        return aws_executor_environment(host_env)
 
     @staticmethod
     def _bounded(value: str | bytes | None) -> str:
@@ -90,7 +101,7 @@ class SubprocessAwsCommandRunner:
         try:
             completed = subprocess.run(
                 (self.executable, *argv), capture_output=True, text=True,
-                check=False, timeout=timeout, env=dict(self.environment))
+                check=False, timeout=timeout, env=self.environment)
         except subprocess.TimeoutExpired as exc:
             return AwsCommandResult(
                 124, self._bounded(exc.stdout), self._bounded(exc.stderr)

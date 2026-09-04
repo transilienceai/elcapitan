@@ -5,17 +5,21 @@ import pytest
 
 from elcapitan.action_plane import ExecutionContext, LiveFindingProbe
 from elcapitan.azure_action import (
-    AzureActionError, AzureCommandResult, AzureStorageAccountClient,
-    AzureStorageBlobPublicAccessDriver, AzureStorageBlobPublicAccessProbe,
-    AzureStorageHealthMonitor, AzureStoragePublicNetworkDriver,
+    AzureActionError,
+    AzureCommandResult,
+    AzureStorageAccountClient,
+    AzureStorageBlobPublicAccessDriver,
+    AzureStorageBlobPublicAccessProbe,
+    AzureStorageHealthMonitor,
+    AzureStoragePublicNetworkDriver,
     AzureStoragePublicNetworkProbe,
-    ManagedIdentityAzureCommandRunner, SubprocessAzureCommandRunner,
+    ManagedIdentityAzureCommandRunner,
+    SubprocessAzureCommandRunner,
     parse_storage_account_id,
 )
 from elcapitan.cases import CaseState, RemediationCase
 from elcapitan.hashing import sha256_file
 from elcapitan.product_records import ProductRecord
-
 
 SUBSCRIPTION = "00000000-0000-0000-0000-000000000001"
 RESOURCE_ID = (
@@ -258,6 +262,25 @@ def test_live_finding_probe_revalidates_only_approved_scope(tmp_path, monkeypatc
     assert result.passed
     assert reads == ["FIND-1"]
     assert result.payload["finding_ids"] == ["FIND-1"]
+
+
+def test_live_finding_probe_resolves_fresh_environment_at_probe_time(
+        tmp_path, monkeypatch):
+    runner = FakeAzureRunner()
+    ctx, _ = context(tmp_path, runner)
+    environments = []
+    probe = LiveFindingProbe(
+        finding_store=FakeFindingStore("FIND-1"),
+        host_env=lambda: {"SESSION": "fresh-at-probe-time"},
+        reader=lambda finding, env: environments.append(env) or object())
+    monkeypatch.setattr(
+        "elcapitan.action_plane.evaluate_finding",
+        lambda finding, state, evidence_ids: FakeEvaluation(finding.finding_id))
+
+    result = probe.run(ctx)
+
+    assert result.passed
+    assert environments == [{"SESSION": "fresh-at-probe-time"}]
 
 
 def test_live_finding_probe_fails_closed_for_unknown_approved_finding(tmp_path):

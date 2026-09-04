@@ -5,20 +5,25 @@ import os
 import urllib.error
 import urllib.parse
 import urllib.request
+from collections.abc import Callable, Mapping
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Callable, Mapping, Protocol
+from typing import Protocol
 
 from .agent_contracts import validate_output
 from .agents import (
-    AgentResultStatus, AgentRole, AgentRuntime, AgentTask, validate_result,
+    AgentResultStatus,
+    AgentRole,
+    AgentRuntime,
+    AgentTask,
+    validate_result,
 )
-from .cases import CaseState, CaseTransition, RemediationCase, case_to_dict
 from .case_validation import FindingValidationStatus, evaluate_finding, read_live_state
+from .cases import CaseState, CaseTransition, RemediationCase, case_to_dict
 from .evidence import Collector, write_evidence
+from .finding_store import FindingStore
 from .hashing import canonical_json, sha256_bytes, sha256_file
 from .intake import numeric_id
-from .finding_store import FindingStore
 from .observability import parse_timestamp
 from .paths import PathEscape, safe_resolve
 from .product_records import ProductRecord, ProductRecordStore
@@ -425,9 +430,10 @@ class RecordedVerificationProbe:
 class LiveFindingProbe:
     """Re-run deterministic finding evaluators against current cloud configuration."""
 
-    def __init__(self, *, finding_store: FindingStore, host_env: Mapping[str, str],
+    def __init__(self, *, finding_store: FindingStore,
+                 host_env: Mapping[str, str] | Callable[[], Mapping[str, str]],
                  reader=read_live_state) -> None:
-        self.finding_store, self.host_env, self.reader = finding_store, dict(host_env), reader
+        self.finding_store, self._host_env, self.reader = finding_store, host_env, reader
 
     @property
     def name(self) -> str:
@@ -453,9 +459,13 @@ class LiveFindingProbe:
         findings = tuple(by_id[finding_id] for finding_id in scoped_ids)
 
         results = []
+        host_env = (
+            dict(self._host_env()) if callable(self._host_env)
+            else dict(self._host_env)
+        )
         for finding in findings:
             try:
-                state = self.reader(finding, self.host_env)
+                state = self.reader(finding, host_env)
                 result = evaluate_finding(finding, state, evidence_ids=())
                 results.append(result.to_dict())
             except (OSError, ValueError) as exc:
