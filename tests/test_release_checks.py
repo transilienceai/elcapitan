@@ -6,7 +6,11 @@ import sys
 import tomllib
 from pathlib import Path
 
-from scripts.check_release_tree import check_release_approval, is_forbidden_tracked_path
+from scripts.check_release_tree import (
+    changelog_release_date_error,
+    check_release_approval,
+    is_forbidden_tracked_path,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -132,14 +136,25 @@ def test_release_tree_rejects_terraform_state_and_variable_artifacts():
     assert not is_forbidden_tracked_path("infra/main.tf")
 
 
-def test_final_release_check_fails_closed_without_approvals_and_dated_changelog():
+def test_final_release_check_fails_closed_without_committed_approval():
     result = run_release_check("--release", "--tag", "v0.1.0")
 
     assert result.returncode == 1
-    assert "CHANGELOG 0.1.0 release date is still Unreleased" in result.stderr
     assert "--approval-sha256 is required" in result.stderr
     assert "RELEASE_APPROVAL.json is missing" in result.stderr
     assert "RELEASE_APPROVAL.json must be committed" in result.stderr
+
+
+def test_final_release_check_requires_a_dated_version_heading():
+    assert changelog_release_date_error(
+        "# Changelog\n\n## [0.1.0] - Unreleased\n", "0.1.0"
+    ) == "CHANGELOG 0.1.0 release date is still Unreleased"
+    assert (
+        changelog_release_date_error(
+            "# Changelog\n\n## [0.1.0] - 2026-09-08\n", "0.1.0"
+        )
+        is None
+    )
 
 
 def test_final_release_check_rejects_version_mismatched_tag():

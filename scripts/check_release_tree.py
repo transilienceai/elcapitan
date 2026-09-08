@@ -203,6 +203,21 @@ def tracked_files() -> tuple[str, ...]:
     return tuple(item.decode() for item in result.stdout.split(b"\0") if item)
 
 
+def changelog_release_date_error(changelog: str, version: str) -> str | None:
+    """Return the fail-closed release-date error for a version heading."""
+    release_heading = next(
+        (
+            line
+            for line in changelog.splitlines()
+            if line.startswith(f"## [{version}]")
+        ),
+        "",
+    )
+    if "Unreleased" in release_heading:
+        return f"CHANGELOG {version} release date is still Unreleased"
+    return None
+
+
 def check(
     release: bool,
     tag: str | None,
@@ -229,16 +244,10 @@ def check(
         expected_tag = f"v{version}"
         if tag != expected_tag:
             errors.append(f"release tag must be {expected_tag}, got {tag!r}")
-        release_heading = next(
-            (
-                line
-                for line in (ROOT / "CHANGELOG.md").read_text().splitlines()
-                if line.startswith(f"## [{version}]")
-            ),
-            "",
-        )
-        if "Unreleased" in release_heading:
-            errors.append(f"CHANGELOG {version} release date is still Unreleased")
+        if changelog_error := changelog_release_date_error(
+            (ROOT / "CHANGELOG.md").read_text(), version
+        ):
+            errors.append(changelog_error)
         errors.extend(
             check_release_approval(
                 ROOT / "RELEASE_APPROVAL.json",
