@@ -8,7 +8,7 @@ be tagged or published.
 
 | Gate | Status | Evidence or next proof |
 |---|---|---|
-| Full Python suite | verified | 746 tests passed in the clean-checkout release rehearsal at `973701e` |
+| Full Python suite | verified | 746 tests passed in the clean-checkout rehearsal at `973701e`; the final approval-tree suite passes 748 after adding explicit dated-changelog, missing-file, untracked-approval, and missing-digest release-gate coverage |
 | Wheel and source distribution | verified | The `973701e` clean checkout built, inspected, and checksummed both distributions |
 | Syntax/static checks | verified | Clean-checkout compile and narrow Ruff error checks passed at `973701e`; repository-wide Ruff formatting remains migration debt |
 | Dependency review | implemented | GitHub dependency review rejects moderate-or-higher vulnerabilities on pull requests |

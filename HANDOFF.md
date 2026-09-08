@@ -37,7 +37,7 @@ Current registry authority:
 - only S3 object versioning has AWS planning or execution capability; its action
   path is now E2E measured against one owner-approved production target.
 
-The current release candidate passes **746 tests**, compile and
+The final approval tree passes **748 tests**, compile and
 the repository's narrow Ruff gates, JavaScript syntax checks, generated-matrix
 and release-tree checks, wheel/source builds, distribution inspection, and
 `git diff --check`. The pre-existing reader role could not be assumed without its

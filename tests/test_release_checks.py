@@ -10,6 +10,7 @@ from scripts.check_release_tree import (
     changelog_release_date_error,
     check_release_approval,
     is_forbidden_tracked_path,
+    release_approval_tracking_errors,
 )
 
 
@@ -136,13 +137,31 @@ def test_release_tree_rejects_terraform_state_and_variable_artifacts():
     assert not is_forbidden_tracked_path("infra/main.tf")
 
 
-def test_final_release_check_fails_closed_without_committed_approval():
+def test_final_release_check_requires_the_exact_approval_digest():
     result = run_release_check("--release", "--tag", "v0.1.0")
 
     assert result.returncode == 1
     assert "--approval-sha256 is required" in result.stderr
-    assert "RELEASE_APPROVAL.json is missing" in result.stderr
-    assert "RELEASE_APPROVAL.json must be committed" in result.stderr
+
+
+def test_final_release_check_fails_closed_when_approval_is_missing(tmp_path):
+    errors = check_release_approval(
+        tmp_path / "RELEASE_APPROVAL.json",
+        expected_tag="v0.1.0",
+        supplied_sha256=None,
+        project_license={"text": "Apache-2.0"},
+        baseline_fingerprints=0,
+    )
+
+    assert "--approval-sha256 is required for a release" in errors
+    assert "RELEASE_APPROVAL.json is missing" in errors
+
+
+def test_final_release_check_rejects_an_untracked_approval():
+    assert release_approval_tracking_errors(()) == [
+        "RELEASE_APPROVAL.json must be committed before release"
+    ]
+    assert release_approval_tracking_errors(("RELEASE_APPROVAL.json",)) == []
 
 
 def test_final_release_check_requires_a_dated_version_heading():

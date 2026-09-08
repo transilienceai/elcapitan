@@ -218,6 +218,13 @@ def changelog_release_date_error(changelog: str, version: str) -> str | None:
     return None
 
 
+def release_approval_tracking_errors(tracked: tuple[str, ...]) -> list[str]:
+    """Require the exact approval record to be part of the release tree."""
+    if "RELEASE_APPROVAL.json" in tracked:
+        return []
+    return ["RELEASE_APPROVAL.json must be committed before release"]
+
+
 def check(
     release: bool,
     tag: str | None,
@@ -239,8 +246,7 @@ def check(
     if release:
         if not (ROOT / "LICENSE").is_file():
             errors.append("LICENSE is missing; legal/business approval is required")
-        if "RELEASE_APPROVAL.json" not in tracked:
-            errors.append("RELEASE_APPROVAL.json must be committed before release")
+        errors.extend(release_approval_tracking_errors(tracked))
         expected_tag = f"v{version}"
         if tag != expected_tag:
             errors.append(f"release tag must be {expected_tag}, got {tag!r}")
