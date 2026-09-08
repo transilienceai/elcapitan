@@ -2,7 +2,7 @@
 
 **Prepared:** 2026-09-08
 
-**Checkpoint parent:** `df5d219` (`Refresh cloud credentials at execution time`)
+**Release-candidate basis:** `4f05409` (rehearsal evidence and publication authorization)
 
 **Release direction:** self-hosted `v0.1.0` technical preview with explicit
 Azure/AWS validation breadth, measured Azure and AWS S3 golden paths, and
@@ -171,11 +171,11 @@ SBOM, local OCI provenance, and an authenticated synthetic quickstart in 14
 seconds. See `docs/release-readiness.md` and
 `docs/release-rehearsal-2026-08-28.md`.
 
-The local launch-package drafts also exist: the README architecture/trust
-boundary, engineering and security articles, limitation-forward release notes,
-and a timed demo/screenshot runbook. Actual screenshots could not be captured
-because no browser surface was connected in the completing session. The live
-lab recording segment and all publication remain separately authorized work.
+The launch package contains the README architecture/trust boundary, engineering
+and security articles, limitation-forward release notes, a timed demo/screenshot
+runbook, and three privacy-reviewed synthetic viewport captures. The original
+owner recording remains unmodified and untracked. A live-lab recording segment
+still requires separate cloud/data/consent authority and is not a v0.1 gate.
 
 The authorized synthetic Azure lab E2E run on 2026-08-29 deployed the current
 candidate with a fresh scanner identity and isolated PostgreSQL database,
@@ -200,8 +200,9 @@ high/critical findings in the local Linux arm64 image. See
 `docs/release-verification-2026-08-29.md`. Manual Chromium acceptance completed
 on 2026-08-30 after correcting copy, focus, typography, hidden-state, and
 recursive-detail defects; see `docs/manual-browser-acceptance-2026-08-30.md`.
-Sanitized viewport-only launch images remain pending because the supplied
-acceptance captures included browser chrome or profile indicators.
+Three sanitized viewport-only launch images are checked in after pixel review;
+browser chrome, profile indicators, the file chooser, local paths, and recording
+controls are excluded.
 
 Post-rewrite CI run `33358160306` passed the 549-test/package job,
 complete-history secret scan, Linux amd64 high/critical container scan with
@@ -470,19 +471,17 @@ and remaining visual-browser limitation are in
    PostgreSQL quickstart, and release-candidate rehearsal.
 2. GitHub Support confirmed PR-ref/cache cleanup on 2026-09-03. The repository
    is public, and the `release` environment requires reviewer `kkmookhey` with
-   self-review prevention disabled as approved. Do not tag or publish until an
-   exact final authorization is recorded in a committed
-   `RELEASE_APPROVAL.json` based on the checked-in example and pass its exact
-   SHA-256 to the manual release workflow; the release-tree check now rejects
-   missing, pending, mismatched, or baseline-waiving records.
+   self-review prevention disabled as approved. Final publication authority was
+   supplied on 2026-09-08 and is recorded in `RELEASE_APPROVAL.json`; its exact
+   SHA-256 must be passed to the manual release workflow, whose release-tree
+   check rejects missing, pending, mismatched, or baseline-waiving records.
 3. The remaining customer shadow pilot requires a separately authorized
    read-only customer boundary, identities, data handling, and consent. It is
    prohibited under the current no-customer-data objective.
-4. Manual rendered UI acceptance is complete. Capture release-safe synthetic
-   screenshots only from a clean browser profile with application-viewport
-   crops, and run the live-lab demo segment only after its exact non-production
-   resource and read-only identity are approved. Recording and publication are
-   external writes and remain unapproved.
+4. Manual rendered UI acceptance and three release-safe synthetic viewport
+   captures are complete. Run any live-lab demo segment only after its exact
+   target, read-only identity, data contract, consent, and publication boundary
+   are separately approved.
 5. The condition attached to the owner's 2026-08-31 public-visibility decision
    was satisfied by GitHub Support's 2026-09-03 cleanup confirmation. The
    authorized public visibility and required-reviewer `release` environment

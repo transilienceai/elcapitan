@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "release_tag": "v0.1.0",
+  "license": {
+    "spdx_id": "Apache-2.0",
+    "decision": "approved",
+    "approved_by": "Transilience, Inc.",
+    "approved_at": "2026-08-30",
+    "evidence_ref": "docs/owner-decisions-2026-08-30.md#license"
+  },
+  "project_name": {
+    "value": "El Capitan",
+    "decision": "approved",
+    "approved_by": "Transilience, Inc.",
+    "approved_at": "2026-08-30",
+    "evidence_ref": "docs/owner-decisions-2026-08-30.md#project-name"
+  },
+  "historical_secret_response": {
+    "decision": "complete",
+    "legacy_fingerprints_reviewed": 22,
+    "remaining_baseline_fingerprints": 0,
+    "potential_credentials_dispositioned": true,
+    "history_rewrite": "completed",
+    "zero_finding_history_scan": true,
+    "approved_by": "KK Mookhey",
+    "approved_at": "2026-09-03",
+    "evidence_ref": "docs/historical-secret-review-2026-08-30.md#required-completion-evidence"
+  },
+  "release_environment": {
+    "name": "release",
+    "decision": "configured",
+    "required_reviewers_configured": true,
+    "approved_by": "KK Mookhey",
+    "approved_at": "2026-09-03",
+    "evidence_ref": "docs/owner-decisions-2026-08-30.md#authorized-repository-setup-completed--2026-09-03"
+  },
+  "release_candidate": {
+    "source_commit": "4f05409b2fba7146e59095e6cdd519051684e8aa",
+    "clean_rehearsal_commit": "973701ee56b9da025b08f456ff2d86642ceb8c97",
+    "clean_rehearsal_evidence_ref": "docs/release-rehearsal-2026-09-08.md",
+    "remote_ci_run": "https://github.com/kkmookhey/elcapitan/actions/runs/34287380573",
+    "decision": "verified"
+  },
+  "publication_authorization": {
+    "decision": "approved",
+    "approved_by": "KK Mookhey",
+    "approved_at": "2026-09-08",
+    "evidence_ref": "docs/release-authorization-2026-09-08.md",
+    "scope": "v0.1.0 tag, workflow-built distributions, checksums, SBOM, provenance attestations, and versioned GHCR image",
+    "excluded": "cloud changes, customer data, model calls, PyPI, mutable latest image, hosted SaaS, and broader capability claims"
+  }
+}
