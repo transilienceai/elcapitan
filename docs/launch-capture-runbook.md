@@ -24,17 +24,19 @@ it accurately rather than implying live proof.
 
 ## Screenshot set
 
-Capture from a clean local quickstart at 1440×900 or larger:
+Capture from a clean local quickstart at 1440×900 or larger. The minimum public
+set is the first three views; package-review and rollback views may be added
+when a clean browser surface is available:
 
 1. `shadow-fleet.png` — synthetic fleet overview with source type and exact
    finding accounting visible.
 2. `capability-boundaries.png` — one control showing separate validation,
    planning, execution, and evidence-grade labels.
-3. `evidence-timeline.png` — minimized evidence and immutable timeline without
-   tokens, raw provider responses, host paths, or identifiers.
-4. `package-review.png` — synthetic review package with exact diff, rollback,
+3. `import-preview.png` — synthetic no-write preview with exact intake
+   accounting and explicit no-cloud/no-model language.
+4. `package-review.png` — optional synthetic review package with exact diff, rollback,
    and package-bound confirmation.
-5. `synthetic-rollback.png` — clearly labeled rollback and recovered health.
+5. `synthetic-rollback.png` — optional clearly labeled rollback and recovered health.
 
 Before committing any image, inspect every pixel for access tokens, cookies,
 connection strings, personal browser chrome, account/subscription/resource
@@ -51,8 +53,25 @@ reduced-motion behavior. Manual Chromium acceptance passed on 2026-08-30 after
 correcting copy, focus, typography, hidden-placeholder, and recursive-detail
 defects; see the [dated record](manual-browser-acceptance-2026-08-30.md).
 
-The acceptance captures are not release assets because several include browser
-chrome or profile indicators. Clean viewport-only screenshots and the
-recording remain pending. The live-lab segment is outside the current no-cloud
-objective. Do not replace browser proof with HTTP assertions, a fabricated
-image, or an unlabeled synthetic claim.
+Three release-safe viewport-only PNGs now exist under `docs/assets/v0.1/`:
+
+- `shadow-fleet.png` — SHA-256
+  `134948a102658312c9459a62c1558365cca16d8cfbe1eb6460898ce8a1b6ce72`;
+- `capability-boundaries.png` — SHA-256
+  `32f053790ce769fbabf2adabeccd7b3c7d9447e3bcebe1e8bedb3280ef1fdbb6`; and
+- `import-preview.png` — SHA-256
+  `940a23ba356a06049476b63cd9ea80079996ddc4c5eadda885211864c47ba145`.
+
+They were cropped from the owner-supplied local acceptance recording after a
+full-frame review. The crop excludes browser chrome, profile indicators, the
+file chooser, local filesystem details, and the recording controls. Visible
+resource data is the checked-in synthetic Azure sample with a truncated zero
+account identifier; connectors are visibly offline and the workspace is
+read-only. Pixel review found no access token, cookie, credential, private URL,
+customer name, personal identifier, or local path. The original recording is
+preserved unmodified and untracked.
+
+Package-review and rollback screenshots remain optional launch follow-ups, not
+substitutes for the existing typed/tested lifecycle evidence. The live-lab
+segment remains outside this no-cloud capture. Do not replace browser proof
+with HTTP assertions, a fabricated image, or an unlabeled synthetic claim.

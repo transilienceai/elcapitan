@@ -4,18 +4,22 @@ All notable changes to El Capitan are recorded here. Dates use ISO 8601.
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-09-08
+
 ### Added
 
-- One contract-tested AWS S3 object-versioning action path through exact CDK
+- One E2E-measured AWS S3 object-versioning action path through exact CDK
   construct and deployed CloudFormation-resource linkage, lockfile-bound dual
   offline synthesis, a three-way one-property template proof that excludes
   pre-existing source/template drift, digest-bound human approval, an isolated
   pinned executor role, stack/S3 monitoring, deterministic post-change
   validation, and completion certification. First enablement's irreversible
   semantics are explicit: recovery to `Suspended` becomes a contained, blocked
-  outcome rather than a false exact-rollback claim. The first exact production
-  package is now approved and durably scheduled; its reviewed source patch and
-  package-bound executor role are present, but the stack update has not started.
+  outcome rather than a false exact-rollback claim. The approved production
+  package completed in one attempt after point-of-use credential refresh was
+  added: the stack and both application aliases remained healthy, versioning
+  was `Enabled`, independent validation returned `not_confirmed`, and the
+  workflow issued a one-finding certificate and completed handoff.
 - One owner-authorized Azure disposable-resource golden path through scoped
   validation, canonical package approval, durable scheduling, least-privilege
   execution, health monitoring, independent live revalidation, exact-finding
@@ -87,9 +91,7 @@ All notable changes to El Capitan are recorded here. Dates use ISO 8601.
 - Clean-checkout release-candidate rehearsal with distribution checksums,
   CycloneDX container SBOM, and BuildKit provenance inspection.
 
-## [0.1.0] - Unreleased
-
-### Added
+### Included
 
 - Evidence-bound intake for Prowler OCSF and AWS Security Hub ASFF exports.
 - Explicit AWS and Azure deterministic live-validation capability registry.
@@ -109,9 +111,10 @@ All notable changes to El Capitan are recorded here. Dates use ISO 8601.
 - This is not an autonomous remediation service or a multi-tenant hosted SaaS.
 - Most registered controls validate only; consult `elcapitan capabilities` for
   separate planning and execution flags.
-- Public release remains blocked on the gates in
-  `docs/release-readiness.md`, including license/name approval and Git-history
-  remediation.
+- Shared-token authentication remains a demonstration and bounded-pilot bridge;
+  production customer approval requires SSO and named-user audit.
+- Broad AWS execution remains deliberately unsupported beyond the separately
+  gated S3 object-versioning path.
 
 [Unreleased]: https://github.com/kkmookhey/elcapitan/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/kkmookhey/elcapitan/releases/tag/v0.1.0

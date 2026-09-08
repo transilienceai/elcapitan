@@ -70,6 +70,8 @@ registered control. Draft launch material includes the
 [security design article](docs/security-design.md), and
 [v0.1.0 release notes](docs/release-notes-v0.1.0.md).
 
+![Synthetic read-only shadow fleet showing explicit capability boundaries](docs/assets/v0.1/shadow-fleet.png)
+
 ## AWS/Azure customer shadow fleet
 
 Run the authenticated, read-only fleet console separately from the action
@@ -426,7 +428,7 @@ CLI session with short-lived, case-scoped workload identity credentials.
 
 ## AWS S3 execution connector
 
-S3 object versioning now has one contract-tested CDK/CloudFormation action
+S3 object versioning now has one E2E-measured CDK/CloudFormation action
 connector. It pins the bucket ARN, account, region, stack, logical resource,
 deployed-template digest, package-approved forward/containment template
 digests, exact short-lived caller role, and the stack's existing service-role
@@ -442,11 +444,14 @@ Recovery sets versioning to `Suspended`; that outcome is recorded as contained
 and blocked for human follow-up, never as exact checkpoint restoration. See the
 [dated AWS execution checkpoint](docs/aws-cdk-execution-checkpoint-2026-09-03.md).
 
-No production stack update was performed for this checkpoint. The first final
-package now names the private target, identity, window, owner tests,
-containment route, and exact digest; after explicit approval, its reviewed
-source patch and package-bound executor role were created and the update was
-durably scheduled. It still cannot start before the approved window.
+The first owner-approved production package completed the full path after an
+earlier attempt exposed and safely recovered from expiring executor sessions.
+The successful successor job completed once without rollback: the stack and
+application aliases remained healthy, S3 versioning was `Enabled`, independent
+validation returned `not_confirmed`, and the workflow issued a one-finding
+certificate and completed handoff. Private target, identity, package, record,
+and evidence identifiers remain outside this repository. See the
+[sanitized golden-path record](docs/aws-s3-production-golden-path-2026-09-08.md).
 
 See [the product architecture](docs/product-architecture.md) for the system
 boundary and first PR-only vertical slice. The retired capability probe is

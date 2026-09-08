@@ -920,5 +920,11 @@ credential refresh. A fresh successor package then completed in one attempt:
 the stack and both application aliases remained healthy, versioning was
 `Enabled`, independent revalidation returned `not_confirmed`, and the workflow
 issued a one-finding certificate and completed handoff without rollback.
+Release cleanup then verified the temporary executor role's trust and sole
+inline policy against the preserved package, confirmed it had no attached or
+unexpected policies, deleted that role, and verified it absent. The target
+stack's pre-existing `AdministratorAccess` CloudFormation service role remains
+unchanged and explicitly recorded as target-owned governance debt.
 Private identifiers remain outside the repository. See
-`docs/aws-s3-production-golden-path-2026-09-08.md`.
+`docs/aws-s3-production-golden-path-2026-09-08.md` and
+`docs/aws-pilot-access-cleanup-2026-09-08.md`.

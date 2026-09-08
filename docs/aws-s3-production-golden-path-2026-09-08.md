@@ -69,6 +69,8 @@ The successful package produced durable records for:
 ## Residual boundaries
 
 - The existing CloudFormation service role still has `AdministratorAccess`.
+- The package-bound executor role was removed after completion and verified
+  absent; see the [sanitized cleanup record](aws-pilot-access-cleanup-2026-09-08.md).
 - Retained historical object versions may increase S3 storage cost.
 - The accepted owner E2E result predates the final execution; fresh HTTPS,
   stack, template, S3, and finding checks mitigate but do not erase that timing

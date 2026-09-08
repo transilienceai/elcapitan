@@ -34,8 +34,10 @@ The primary ten-minute journey is:
 6. For explicitly supported controls, attach an IaC snapshot and operational
    context, run maker/checker review, and inspect the exact patch, SRE review,
    window, verification, and rollback records.
-7. Stop at a package-bound human decision. Approval creates durable approval
-   and scheduling records; it does not imply that a cloud change is executable.
+7. Stop at a package-bound human decision by default. For one of the three
+   explicitly executable controls, a separately authorized action worker may
+   claim the resulting schedule, checkpoint, deploy, monitor, independently
+   verify, and either certify or recover according to the approved contract.
 
 The synthetic browser lifecycle remains a separate demonstration of healthy
 deployment and automatic rollback. It must never be presented as evidence that
@@ -55,8 +57,9 @@ the time of this blueprint it reports:
 The documentation and UI must never collapse these three columns into a single
 "supported" badge. Each control also receives an evidence grade:
 
-- **E2E measured:** collector and evaluator ran with a least-privilege identity
-  against a disposable or approved non-production resource.
+- **E2E measured:** the declared path ran with bounded identities against a
+  disposable lab or an explicitly owner-approved target and produced durable
+  outcome evidence.
 - **Contract tested:** official response schema and sanitized fixtures exercise
   success, failure, malformed, and absent-property branches.
 - **Export observed:** real scanner output proves rule/resource shapes offline,
@@ -65,9 +68,10 @@ The documentation and UI must never collapse these three columns into a single
 Azure OpenAI and Cosmos DB enter v0.1 as contract tested and export observed,
 not E2E measured. That distinction is a feature of the trust model, not a
 footnote. Key Vault's diagnostic-logging extension is contract tested while
-the other Key Vault controls retain their E2E-measured grade. The six added S3
-controls, eight RDS controls, twenty EC2 security-group controls, and two EBS
-volume controls are also contract tested rather than E2E measured. Validator
+the other Key Vault controls retain their E2E-measured grade. The six additional
+S3 controls, eight RDS controls, twenty EC2 security-group controls, and two EBS
+volume controls are contract tested rather than E2E measured. S3 object
+versioning is the sole E2E-measured AWS planning and execution path. Validator
 counts do not imply equal service breadth, evidence depth, planning coverage,
 or execution authority.
 
@@ -132,9 +136,8 @@ or arbitrary agent graph designer.
   and container scanning on every pull request.
 - `LICENSE`, `SECURITY.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, changelog,
   support policy, and versioning policy exist.
-- The license and project name have explicit legal/business approval. The
-  repository currently has no license, so publication must not occur by
-  accident.
+- The Apache-2.0 license and El Capitan project name have explicit recorded
+  legal/business-owner approval.
 - The exact license, project-name decision, completed historical-secret
   response, and protected-environment reviewer configuration are recorded in a
   committed `RELEASE_APPROVAL.json`. The manual workflow must receive and
@@ -189,22 +192,24 @@ The launch should include:
    fail-closed behavior, and package-bound human approval.
 6. Release notes that state limitations as prominently as features.
 
-The local launch drafts are the [engineering article](engineering-deterministic-gates.md),
+The launch material includes the [engineering article](engineering-deterministic-gates.md),
 [security design article](security-design.md), and [limitation-forward release
 notes](release-notes-v0.1.0.md). The [capture runbook](launch-capture-runbook.md)
-defines the seven-minute sequence and screenshot safety review. Actual media,
-the authorized live-lab segment, and publication remain external gates.
+defines the seven-minute sequence and screenshot safety review. Any live-lab
+recording still requires its own exact target, identity, data-handling, consent,
+and publication authorization; synthetic launch captures do not grant cloud
+authority.
 
 ## Recommended sequence
 
-1. Preserve the completed validation checkpoints and generated support matrix;
-   deepen evidence only through explicitly authorized lab work.
-2. Complete the remaining external cleanup and protected-release gates.
-3. Add Entra authentication and named-user auditability to the review plane.
+1. Publish `v0.1.0` through the digest-bound, reviewer-protected release gate.
+2. Add Entra authentication and named-user auditability to the review plane.
+3. Replace retained action credentials with short-lived workload identity and
+   keep each production connector least-privilege and package-bound.
 4. Run one authorized customer shadow pilot without model egress or action
    identity; publish only anonymized aggregate lessons with consent.
-5. Obtain committed, digest-bound release approval for the exact artifact set,
-   then tag `v0.1.0`, publish artifacts, and call it a technical preview.
+5. Select any next action connector from validated demand and give it an
+   independent target, identity, rollback, monitoring, and approval design.
 
 Success for v0.1 is not the number of checks. It is whether a skeptical security
 or SRE reviewer can trace every supported claim, understand every unsupported

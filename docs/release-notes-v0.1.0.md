@@ -1,22 +1,28 @@
 # El Capitan v0.1.0 technical preview release notes
 
-**Status:** unreleased; external release gates remain blocked
+**Release date:** 2026-09-08
+
+El Capitan is a self-hosted, evidence-bound cloud remediation control plane.
+The technical preview imports scanner findings, revalidates explicitly
+supported claims against live configuration, prepares exact remediation
+packages, stops for package-bound human approval, and permits deployment only
+through a separately proven action connector and identity.
 
 ## Important limitations
 
-- This is a self-hosted technical preview, not an autonomous replacement for a
-  DevOps or SRE team and not a public multi-tenant SaaS.
-- Read-only live validation covers 72 deterministic controls (35 Azure, 37 AWS),
-  but only four controls support verified remediation planning and only three
-  controls have action connectors: two E2E-measured Azure Storage paths and one
-  contract-tested, not-yet-executed AWS S3 path.
+- This is a technical preview, not an autonomous DevOps/SRE replacement or a
+  public multi-tenant SaaS.
+- Read-only live validation covers 72 deterministic controls (35 Azure and 37
+  AWS), but only four controls support remediation planning and only three have
+  action connectors: two Azure Storage paths and one AWS S3 path.
 - Validation capability never grants planning or execution authority.
 - Shared-token browser authentication is for local demonstration and bounded
-  pilots, not production customer approval.
-- Azure OpenAI and Cosmos DB controls are contract tested and export observed,
-  not E2E measured. Key Vault diagnostic logging, the six added S3 controls,
+  pilots, not production customer approval. Production approval requires SSO
+  and named-user audit.
+- Azure OpenAI and Cosmos DB are contract tested and export observed rather
+  than E2E measured. Key Vault diagnostic logging, six additional S3 controls,
   eight RDS controls, twenty EC2 security-group controls, and two EBS volume
-  controls are contract tested but not yet measured in the lab.
+  controls are contract tested but not E2E measured.
 - No unattended production remediation, generic VM/OS patching, arbitrary
   application-code remediation, broad AWS execution, or complete benchmark
   coverage is claimed.
@@ -25,24 +31,44 @@
 
 - OCSF and AWS Security Hub ASFF intake with exact FAIL/PASS/MANUAL accounting,
   replay deduplication, tenant isolation, correlation, transparent priority,
-  and optional exact-resource asset-context enrichment with a no-write match
-  and gap preview.
-- Authenticated read-only fleet console with explicit source, outcome,
-  validation, planning, execution, and evidence-grade labels; guided sample and
-  scanner-export entry paths; and a no-write import preview before confirmation.
+  and optional exact-resource asset context.
+- An authenticated, read-only shadow console with explicit source, outcome,
+  validation, planning, execution, and evidence-grade labels.
 - Bounded Azure and AWS collectors with minimized typed evidence and
   deterministic fail-closed evaluation.
 - Conservative Terraform or AWS CDK/CloudFormation linkage, isolated
-  complete-file proposals, and engine-specific format, synthesis, validation,
-  and exact-scope checks.
+  complete-file proposals, and engine-specific scope checks.
 - Independent SRE, change-window, rollback, human-decision, execution,
   verification, certificate, and originator-handoff records.
 - Durable runtime budgets, idempotent replay, equivalent-failure circuit
   breaking, and operator-visible needs-human outcomes.
-- Docker Compose quickstart with PostgreSQL and a checked-in synthetic finding.
-- Generated capability/evidence matrix, pinned container inputs, package and
+- A Docker Compose quickstart with PostgreSQL and checked-in synthetic data.
+- A generated capability/evidence matrix, pinned container inputs, package and
   container security checks, CycloneDX SBOM, provenance, and guarded release
   automation.
+
+## Measured end-to-end evidence
+
+The Azure disposable-resource golden path completed validation, exact
+Terraform planning, independent reviews, digest-bound approval,
+least-privilege execution, monitoring, deterministic revalidation,
+certification, handoff, and complete temporary-identity cleanup.
+
+The AWS S3 object-versioning golden path completed the same control contract
+through an exact CDK construct and deployed CloudFormation logical resource.
+An initial attempt failed closed when a session expired during stabilization;
+the exact checkpoint was recovered, point-of-use credential refresh was added,
+and the preserved successor package then succeeded in one attempt. The stack
+and application aliases remained healthy, versioning was `Enabled`, and the
+approved finding revalidated as `not_confirmed`. The sanitized evidence record
+is [here](aws-s3-production-golden-path-2026-09-08.md).
+
+Those measured paths prove their named controls only. They do not grant action
+authority to the other registered validators.
+
+The temporary AWS executor role was removed after the completed pilot and
+verified absent. The target stack's pre-existing broad CloudFormation service
+role was not changed and remains explicitly documented target-owned risk.
 
 ## Local preview
 
@@ -54,54 +80,6 @@ Open `http://127.0.0.1:8770` and follow the [five-minute
 quickstart](quickstart.md). It uses synthetic data and needs no cloud or model
 credentials.
 
-## Candidate evidence
-
-The local clean-clone rehearsal at commit `44dd79e` passed 538 tests, inspected
-the wheel and source distribution, ran the complete-history secret prevention
-scan with its disclosed historical baseline, completed the authenticated
-PostgreSQL quickstart, generated a 370-component CycloneDX container SBOM, and
-recorded local OCI provenance. See the [dated rehearsal
-record](release-rehearsal-2026-08-28.md).
-
-The AWS parity checkpoint was built from source commit
-`499382d278afee8f750af74b8e879bd1cfbd8c2c`. It passes 680 tests, package and
-installed-wheel smoke checks, capability-matrix and release-tree checks,
-narrow Ruff checks, and `git diff --check`. No AWS execution, cloud write,
-model call, customer-system access, or external publication was performed.
-
-The subsequent EBS volume checkpoint was built from source commit
-`f441de9ecaa8d947a24e33acbd4b5e000c46bd88`. It passes 703 tests, compile and
-narrow Ruff checks, generated-matrix and release-tree verification,
-wheel/source builds, distribution inspection, and `git diff --check`. It used
-only synthetic AWS contract fixtures and made no cloud or model call.
-
-The Guided Shadow Trial working-tree checkpoint builds from committed EBS base
-`7e2b0b4`. It adds a no-write/no-cloud intake preview, guided first-use paths,
-plain-language results, exact-resource asset context, and score-driving
-observation detail without adding approval, scheduling, model, or execution
-routes. Its realistic Azure test acceptance is recorded in
-[`azure-asset-context-trial-2026-09-01.md`](azure-asset-context-trial-2026-09-01.md).
-
-The AWS S3 evidence-to-review checkpoint is preserved in `a736e5b`. It passes
-725 tests and the compile, narrow Ruff, generated-matrix, release-tree,
-wheel/source build, distribution-inspection, locked-requirements, and diff
-checks. It uses only recorded contract fixtures and grants no AWS execution
-authority.
-
-The subsequent AWS CDK/CloudFormation action checkpoint adds a digest-bound S3
-versioning connector, isolated exact-role executor credentials, control-plane
-monitoring, post-change validation, and honest irreversible-change containment.
-Its full local verification result is recorded in the current handoff. No AWS
-write was performed; the first production package remains subject to a fresh
-digest-bound approval.
-
-The public runtime, CI, and release workflow use pinned Terraform 1.16.1. The
-upgrade replaces Terraform 1.16.0's fixed-high vulnerable embedded gRPC-Go with
-upstream's patched gRPC-Go 1.83.1; the rebuilt non-root image passes fresh
-Trivy 0.70.0 high/critical scanning locally.
-
-This evidence is not release approval. GitHub Support confirmed retained
-PR-ref cleanup on 2026-09-03; the repository is now public, and the protected
-`release` environment requires reviewer `kkmookhey`. Before the version is
-tagged, a committed digest-bound release approval must authorize the exact tag.
-The changelog date and release artifacts must then be regenerated for that tag.
+The final release evidence, checksums, SBOM, provenance, attestations, and OCI
+digest are produced by the reviewer-protected release workflow for the exact
+`v0.1.0` tag.
