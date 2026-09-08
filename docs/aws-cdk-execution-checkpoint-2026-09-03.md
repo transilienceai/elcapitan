@@ -1,5 +1,11 @@
 # AWS CDK/CloudFormation execution checkpoint — 2026-09-03
 
+> Follow-up: the owner-approved production pilot completed on 2026-09-08 after
+> a failed-closed credential-expiry attempt, exact containment recovery, and a
+> fresh digest-bound run. See
+> `docs/aws-s3-production-golden-path-2026-09-08.md` for the sanitized measured
+> outcome. The statements below describe this earlier local checkpoint.
+
 ## Outcome
 
 El Capitan now has a contract-tested action path for the AWS S3 object-

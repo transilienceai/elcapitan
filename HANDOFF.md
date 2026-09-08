@@ -1,12 +1,12 @@
 # El Capitan — fresh-session handoff
 
-**Prepared:** 2026-09-03
+**Prepared:** 2026-09-08
 
-**Checkpoint parent:** `664b707` (`Refresh overview for Azure golden path`)
+**Checkpoint parent:** `df5d219` (`Refresh cloud credentials at execution time`)
 
 **Release direction:** self-hosted `v0.1.0` technical preview with explicit
-Azure/AWS validation breadth, one measured Azure golden path, one
-contract-tested AWS S3 action path, and explicit evidence grades
+Azure/AWS validation breadth, measured Azure and AWS S3 golden paths, and
+explicit evidence grades
 
 This file is the durable context for a fresh Codex session. Read it completely,
 then read `README.md`, `docs/public-release-v0.1.md`,
@@ -17,13 +17,13 @@ completed work from an earlier conversation.
 ## Resume here — authoritative current checkpoint
 
 The Guided Shadow Trial, exact-resource asset-context prioritization, AWS
-evidence-to-review checkpoint, and completed Azure disposable golden path are
-preserved through `664b707`. S3 object versioning now also has a local,
-contract-tested AWS CDK/CloudFormation action path from exact deployed-template
-linkage through monitoring, post-change validation, and certification. No AWS
-mutation has occurred. Do not reset, reconstruct, split, or overwrite these
-checkpoints. The owner screen recording remains an untracked local review
-artifact and must not be committed.
+evidence-to-review checkpoint, completed Azure disposable golden path, and
+completed AWS S3 production golden path are preserved through the current
+checkpoint. S3 object versioning has now completed the exact deployed-template
+path through monitoring, independent post-change validation, certification,
+and handoff against one owner-testable production application. Do not reset,
+reconstruct, split, or overwrite these checkpoints. The owner screen recording
+remains an untracked local review artifact and must not be committed.
 
 Current registry authority:
 
@@ -35,13 +35,12 @@ Current registry authority:
 - AWS validation: 7 S3, 8 RDS DB-instance, 20 EC2 security-group, and 2 EBS
   volume controls;
 - only S3 object versioning has AWS planning or execution capability; its action
-  path is contract tested and has not been run against production.
+  path is now E2E measured against one owner-approved production target.
 
-The current AWS action checkpoint passes **743 tests**, compile and
+The current AWS action checkpoint passes **745 tests**, compile and
 the repository's narrow Ruff gates, JavaScript syntax checks, generated-matrix
 and release-tree checks, wheel/source builds, distribution inspection, and
-`git diff --check`. The action extension used local fixtures and made no AWS
-mutation. The pre-existing reader role could not be assumed without its
+`git diff --check`. The pre-existing reader role could not be assumed without its
 ExternalId, so owner-authorized discovery minted temporary federated sessions
 with exact read-only inline policies; the default IAM user acted only as the
 STS broker. One direct default-identity IAM read inspected the existing
@@ -103,15 +102,12 @@ git diff --check
 uv run python scripts/generate_capability_matrix.py --check
 ```
 
-Do not redo S3, RDS, EC2 security-group, EBS volume, the AWS S3 review-package
-path, Guided Shadow Trial, or asset-context prioritization work. GCP is
-explicitly deferred. The next bounded AWS step, if the owner authorizes it, is a
-real non-production S3 shadow/promotion pilot with a dedicated scanner identity,
-authoritative IaC and sanitized state, a separate short-lived planner session,
-service/usage context, and named independent reviewer routes. Do not add AWS
-execution authority. Any further planning or execution expansion requires
-separate service-specific design, identity, operational, rollback, and
-authorization work.
+Do not redo S3, RDS, EC2 security-group, EBS volume, either golden path, the AWS
+S3 review-package path, Guided Shadow Trial, or asset-context prioritization
+work. GCP is explicitly deferred. Do not add AWS execution authority to another
+control from this checkpoint. Any further planning or execution expansion
+requires separate service-specific design, identity, operational, rollback,
+and authorization work.
 
 ## Product identity
 
@@ -913,12 +909,16 @@ logical resource, fresh executor role, unchanged service-role baseline,
 one-property templates and digests, write-freeze window, owner end-to-end tests,
 containment route, and approval command. The owner supplied the exact
 package-and-digest approval. The byte-identical one-line source patch was
-committed in the authoritative repository, the exact digest-bound executor
-role was created and assumption-tested, and the canonical case was durably
-scheduled for its approved window. The production stack update has not started.
-The one-shot worker must repeat every binding check at window start, wait 15
-minutes after first enablement, run both HTTPS and independently federated
-finding checks, and require the owner's post-deployment E2E attestation before
-certification. A failed or missing attestation by the recovery cutoff invokes
-the approved `Suspended` containment route. See
-`docs/aws-cdk-execution-checkpoint-2026-09-03.md`.
+committed in the authoritative repository, and the exact digest-bound executor
+role was created and assumption-tested.
+
+The first execution attempt exposed an expiring-session defect after the live
+update and failed closed. Its exact rollback was recovered with a fresh
+executor session, and the failed case and job remain preserved without a
+certificate. Commit `df5d219` added point-of-use executor and validator
+credential refresh. A fresh successor package then completed in one attempt:
+the stack and both application aliases remained healthy, versioning was
+`Enabled`, independent revalidation returned `not_confirmed`, and the workflow
+issued a one-finding certificate and completed handoff without rollback.
+Private identifiers remain outside the repository. See
+`docs/aws-s3-production-golden-path-2026-09-08.md`.
