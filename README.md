@@ -65,7 +65,7 @@ blueprint](docs/public-release-v0.1.md) for its product promise, distribution,
 security gates, and launch checklist. The
 [generated capability/evidence matrix](docs/generated/capability-matrix.md)
 keeps validation, planning, execution, and proof grade separate for every
-registered control. Draft launch material includes the
+registered control. Release material includes the
 [engineering design article](docs/engineering-deterministic-gates.md),
 [security design article](docs/security-design.md), and
 [v0.1.0 release notes](docs/release-notes-v0.1.0.md).
