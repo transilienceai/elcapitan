@@ -34,15 +34,17 @@ be tagged or published.
 | Project-name approval | verified | Transilience, Inc. approved retaining El Capitan after the collision risk was surfaced; the [dated record](owner-decisions-2026-08-30.md) is a business decision, not a trademark opinion |
 | Historical secret response | verified | The [sanitized review](historical-secret-review-2026-08-30.md) records all 22 dispositions, completed Eiger credential cleanup, three narrowly constrained false-positive rules, an empty baseline, and a zero-finding isolated all-ref scan |
 | Protected release environment | verified | The repository is public. The `release` environment requires reviewer `kkmookhey`, has self-review prevention disabled as approved, and has no branch-policy restriction; this setup does not authorize a tag or workflow run |
-| Remote CI | verified | [Run 34287380573](https://github.com/kkmookhey/elcapitan/actions/runs/34287380573) passed tests/package, complete-history secret scanning, Linux high/critical container scanning, and the PostgreSQL/UI quickstart at synchronized candidate `4f05409`; the exact release workflow repeats the full gates for the tag |
+| Remote CI | verified | [Run 34288299192](https://github.com/kkmookhey/elcapitan/actions/runs/34288299192) passed tests/package, complete-history secret scanning, Linux high/critical container scanning, and the PostgreSQL/UI quickstart at exact tag commit `522eabb` |
 | Publication authorization | verified | The owner directed completion of the exact six-task release sequence on 2026-09-08; the [sanitized scope record](release-authorization-2026-09-08.md) excludes cloud changes, customer data, model calls, PyPI, and broader product claims |
-| OCI/distribution publication | implemented | Run the guarded workflow only from the exact committed approval digest and `v0.1.0` tag |
+| OCI/distribution publication | verified | [Protected run 34288616030](https://github.com/kkmookhey/elcapitan/actions/runs/34288616030) published the checksum-verified wheel, source distribution, CycloneDX SBOM, signed attestations, and public AMD64/ARM64 image from tag `v0.1.0`; see the [publication record](release-publication-2026-09-08.md) |
 | Customer shadow pilot | blocked | Not a v0.1 release gate; requires a separately authorized boundary, customer agreement, identities, data handling, and read-only access |
 | Public launch materials | verified | Architecture/trust-boundary README, articles, limitation-forward release notes, capability matrix, and three privacy-reviewed synthetic viewport captures are checked in; live-lab recording remains separately gated and is not required for this release |
 
-The release workflow is manual-only. It runs only on a tag, requires the exact
+The release workflow is manual-only. The completed v0.1.0 run used the exact
+tag, approval input, and committed approval digest. Future runs likewise run
+only on a tag and require the exact
 `RELEASE APPROVED` input and the SHA-256 of the committed
-`RELEASE_APPROVAL.json`, uses the protected `release` environment, and then
+`RELEASE_APPROVAL.json`, use the protected `release` environment, and then
 rechecks the license, changelog date, tag/version match, tests, distribution,
 checksums, SBOM, provenance, and signed attestations before pushing the
 multi-architecture GHCR image. Its existence is not release approval.
@@ -81,7 +83,9 @@ old matches are safe. Before public release, an authorized security owner must:
 
 ## Release evidence bundle
 
-The final evidence bundle must contain the commit and tag, exact tool versions,
+The [v0.1.0 publication record](release-publication-2026-09-08.md) indexes the
+completed evidence bundle. Each future final evidence bundle must contain the
+commit and tag, exact tool versions,
 test and clean-machine logs, generated capability matrix, wheel/sdist and image
 digests, `SHA256SUMS`, CycloneDX SBOM, GitHub provenance/SBOM attestations,
 container scan result, the committed `RELEASE_APPROVAL.json` and its SHA-256,

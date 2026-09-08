@@ -58,7 +58,7 @@ five-minute script, safety boundaries, and Azure packaging notes.
 Hermes is not required. Model-backed workers use a provider-neutral runtime
 contract; deterministic workflow and policy code owns state and side effects.
 
-The intended first public release is a self-hosted `v0.1.0` technical preview:
+The first public release is a self-hosted `v0.1.0` technical preview:
 read-only shadow validation by default, explicit capability boundaries, and a
 human-gated remediation package. See the [public release
 blueprint](docs/public-release-v0.1.md) for its product promise, distribution,

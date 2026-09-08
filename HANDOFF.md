@@ -2,9 +2,9 @@
 
 **Prepared:** 2026-09-08
 
-**Release-candidate basis:** `4f05409` (rehearsal evidence and publication authorization)
+**Released basis:** `v0.1.0` at `522eabb51fe0394f97516dae2a7f97746e604b0c`
 
-**Release direction:** self-hosted `v0.1.0` technical preview with explicit
+**Release status:** the self-hosted `v0.1.0` technical preview is public with explicit
 Azure/AWS validation breadth, measured Azure and AWS S3 golden paths, and
 explicit evidence grades
 
@@ -24,6 +24,13 @@ path through monitoring, independent post-change validation, certification,
 and handoff against one owner-testable production application. Do not reset,
 reconstruct, split, or overwrite these checkpoints. The owner screen recording
 remains an untracked local review artifact and must not be committed.
+
+The public `v0.1.0` technical preview is released from exact commit `522eabb`
+through protected workflow run `34288616030`. The public multi-architecture
+image digest is `sha256:155511fcaab4546e13af396695560a0b7c11f7278d124ac7ef5d89b83d0ea774`.
+Wheel, source distribution, checksums, CycloneDX SBOM, and strict provenance
+verification are indexed in `docs/release-publication-2026-09-08.md`. Do not
+move or recreate the tag; post-release documentation belongs after it on main.
 
 Current registry authority:
 
@@ -464,7 +471,7 @@ and remaining visual-browser limitation are in
 
 ## Subsequent roadmap
 
-1. The local `v0.1.0` release-preparation work is complete: feature freeze,
+1. The public `v0.1.0` technical preview is complete: feature freeze,
    governance, CI and guarded publication mechanisms, preventive security
    scanning, clean packaging metadata, reproducible container inputs,
    SBOM/provenance generation, capability/evidence matrix generation,
@@ -473,8 +480,9 @@ and remaining visual-browser limitation are in
    is public, and the `release` environment requires reviewer `kkmookhey` with
    self-review prevention disabled as approved. Final publication authority was
    supplied on 2026-09-08 and is recorded in `RELEASE_APPROVAL.json`; its exact
-   SHA-256 must be passed to the manual release workflow, whose release-tree
-   check rejects missing, pending, mismatched, or baseline-waiving records.
+   SHA-256 was passed to protected release workflow run `34288616030`, whose
+   release-tree check rejected missing, pending, mismatched, or baseline-waiving
+   records before publication.
 3. The remaining customer shadow pilot requires a separately authorized
    read-only customer boundary, identities, data handling, and consent. It is
    prohibited under the current no-customer-data objective.
@@ -486,8 +494,8 @@ and remaining visual-browser limitation are in
    was satisfied by GitHub Support's 2026-09-03 cleanup confirmation. The
    authorized public visibility and required-reviewer `release` environment
    were configured and verified on 2026-09-03. They do not authorize a tag,
-   workflow run, package or image publication, or launch announcement; do not
-   weaken the guarded release workflow.
+   future workflow run, package or image publication, or launch announcement;
+   do not weaken the guarded release workflow.
 
 The retired Claude/Hermes capability probe remains on
 `archive/claude-code-probe-2026-08-25`. It is not part of the product runtime,

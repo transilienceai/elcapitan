@@ -744,27 +744,27 @@
     <section class="section" id="roadmap">
       <div class="shell">
         <div class="section-head">
-          <div><p class="section-label">Roadmap ahead</p><h2>Release safely, then deepen trust.</h2></div>
-          <p class="section-intro">The immediate roadmap is a controlled public technical preview. Product expansion follows the same rule as the current system: add authority only after the evidence, identity, operational contract, and recovery path are proven.</p>
+          <div><p class="section-label">Roadmap ahead</p><h2>Released safely. Now deepen trust.</h2></div>
+          <p class="section-intro">The controlled public technical preview is live. Product expansion follows the same rule as the current system: add authority only after the evidence, identity, operational contract, and recovery path are proven.</p>
         </div>
 
         <div class="roadmap">
           <article class="roadmap-item"><span class="roadmap-time">Now · foundation</span><div><h3>Azure and AWS measured</h3><p>The evidence-bound workflow, capability matrix, governance, packaging, security checks, one measured Azure remediation, and one measured AWS S3 remediation are complete. Further Azure work is parked.</p></div><span class="roadmap-status">Built</span></article>
           <article class="roadmap-item"><span class="roadmap-time">Now · AWS action</span><div><h3>Bind S3 review to narrow execution</h3><p>S3 object versioning has an exact Terraform review route plus a deployed-template-grounded CDK/CloudFormation action route. It fails closed on sibling changes and treats irreversible recovery as containment.</p></div><span class="roadmap-status">Built</span></article>
           <article class="roadmap-item"><span class="roadmap-time">Complete · AWS production pilot</span><div><h3>One S3 change reached measured parity</h3><p>The exact private target, source/template artifacts, executor identity, operational baseline, owner evidence, write freeze, fresh validation, and exact rollback route produced a successful one-attempt job, certificate, and handoff.</p></div><span class="roadmap-status">Measured</span></article>
-          <article class="roadmap-item"><span class="roadmap-time">Now · v0.1 release</span><div><h3>Publish one exact technical preview</h3><p>GitHub cleanup, public visibility, the reviewer-protected release environment, measured cloud paths, and launch captures are complete. Publication remains bound to the committed approval record and exact tag.</p></div><span class="roadmap-status">Authorized</span></article>
+          <article class="roadmap-item"><span class="roadmap-time">Released · v0.1</span><div><h3>One exact technical preview is public</h3><p>Tag <code>v0.1.0</code>, checksum-verified packages, CycloneDX SBOM, signed attestations, and the public AMD64/ARM64 image were published through the reviewer-protected release environment from the committed approval record.</p></div><span class="roadmap-status">Released</span></article>
           <article class="roadmap-item future"><span class="roadmap-time">Near term</span><div><h3>Build the CTEM context graph</h3><p>Add first-class Azure resources, Entra identities, Cortex endpoints, CVE threat context, and evidence-backed reachability while keeping asset, identity, endpoint, finding, and threat facts distinct.</p></div><span class="roadmap-status">Planned</span></article>
           <article class="roadmap-item future"><span class="roadmap-time">Later</span><div><h3>Harden identity and portable operations</h3><p>Add Microsoft Entra approval authentication, named-user audit, workload identity, CI/source-control workflows, customer notifications, and deployment options as concrete workflows justify them.</p></div><span class="roadmap-status">Deferred</span></article>
         </div>
 
         <aside class="release-gate" id="release-gate">
-          <div class="release-gate-head"><h3>Publication is digest-bound and reviewer protected.</h3><span class="gate-pill">Fail-closed gate</span></div>
-          <p>GitHub Support confirmed deletion and unreferenced-commit cleanup under ticket #4715479 on 3 September 2026. Independent checks found no pull request, advertised pull ref, or accessible copy of the first rewritten commit. The public repository's <code>release</code> environment requires reviewer <code>kkmookhey</code>. The owner authorized the v0.1 release-preparation sequence on 8 September 2026; the tag, package, image, and attestations still proceed only from the exact committed approval digest.</p>
-          <div class="gate-steps" aria-label="Remaining release gates">
+          <div class="release-gate-head"><h3>Publication was digest-bound and reviewer protected.</h3><span class="gate-pill">Release verified</span></div>
+          <p>GitHub Support confirmed deletion and unreferenced-commit cleanup under ticket #4715479 on 3 September 2026. Independent checks found no pull request, advertised pull ref, or accessible copy of the first rewritten commit. The public repository's <code>release</code> environment required reviewer <code>kkmookhey</code>. The owner authorized the v0.1 release-preparation sequence on 8 September 2026; protected run <code>34288616030</code> published the tag, packages, image, and attestations only from the exact committed approval digest.</p>
+          <div class="gate-steps" aria-label="Completed release gates">
             <div class="gate-step"><strong>01 · COMPLETE</strong>GitHub PR-ref and commit cleanup confirmed</div>
             <div class="gate-step"><strong>02 · COMPLETE</strong>Public visibility and reviewer-protected release environment</div>
             <div class="gate-step"><strong>03 · COMPLETE</strong>Explicit final tag and publication direction received</div>
-            <div class="gate-step"><strong>04 · GUARDED</strong>Commit the approval record, verify its digest, then run the exact-tag release</div>
+            <div class="gate-step"><strong>04 · COMPLETE</strong>Approval digest verified and exact-tag protected release succeeded</div>
           </div>
         </aside>
       </div>
