@@ -70,6 +70,16 @@ The temporary AWS executor role was removed after the completed pilot and
 verified absent. The target stack's pre-existing broad CloudFormation service
 role was not changed and remains explicitly documented target-owned risk.
 
+## Post-publication container advisory
+
+On 2026-09-08, after the protected release workflow completed, CVE-2026-84445
+was published for the gRPC-Go version embedded in the Terraform binary inside
+the v0.1.0 OCI image. Do not deploy that image. The wheel, source archive, and
+release SBOM are not the affected OCI binary. `main` rebuilds Terraform 1.16.1
+with the fixed gRPC-Go 1.83.2 dependency and passes the same HIGH/CRITICAL
+Trivy gate; a successor release is required before publishing a replacement
+official container image.
+
 ## Local preview
 
 ```bash

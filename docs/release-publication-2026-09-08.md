@@ -26,6 +26,22 @@ downloads were verified, the duplicate personal GitHub Release object was
 retired; the originating tag, CI run, workflow logs, attestations, and image
 remain available as immutable build evidence.
 
+## Post-publication security status
+
+Later on 2026-09-08, GitHub published CVE-2026-84445 for the gRPC-Go 1.83.1
+dependency embedded in Terraform 1.16.1. The protected workflow had passed
+against the vulnerability database available at build time; a subsequent
+organization-repository CI run detected the new fixed HIGH advisory. The
+v0.1.0 OCI image is therefore retained only as originating build evidence and
+must not be deployed. The wheel, source archive, and release SBOM are not the
+affected OCI binary.
+
+`main` now compiles the same pinned Terraform source with gRPC-Go 1.83.2,
+verifies the module version in the resulting binary, and again passes Trivy's
+fixed HIGH/CRITICAL rejection gate. The next patch release must publish the
+replacement container from `transilienceai/elcapitan`; the immutable v0.1.0
+tag and artifacts are not rewritten.
+
 ## Published assets
 
 | Asset | SHA-256 |
@@ -60,8 +76,10 @@ plus their Buildx attestation manifests.
 
 The protected workflow independently repeated the final release gate, 748-test
 suite, distribution build and inspection, CycloneDX generation, runtime image
-build, fixed high/critical vulnerability rejection, distribution attestations,
-multi-architecture image build, image attestation, and evidence-bundle upload.
+build, the fixed high/critical vulnerability rejection available at that time,
+distribution attestations, multi-architecture image build, image attestation,
+and evidence-bundle upload. The post-publication advisory above supersedes the
+container's clean-scan status.
 
 ## Scope boundaries
 

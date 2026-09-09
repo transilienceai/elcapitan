@@ -4,6 +4,19 @@ All notable changes to El Capitan are recorded here. Dates use ISO 8601.
 
 ## [Unreleased]
 
+### Security
+
+- Rebuild the pinned Terraform 1.16.1 source with
+  `google.golang.org/grpc` 1.83.2 after the 2026-09-08 publication of
+  CVE-2026-84445. The fixed dependency is verified in the compiled binary and
+  the runtime image again passes the no-fixed-HIGH-or-CRITICAL Trivy gate.
+
+### Changed
+
+- Run the checksum-verified Gitleaks 8.30.1 OSS binary directly in CI so the
+  complete-history secret gate works identically in personal and organization
+  repositories without depending on the Action wrapper's organization license.
+
 ## [0.1.0] - 2026-09-08
 
 ### Added

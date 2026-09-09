@@ -5,6 +5,8 @@ ADD --checksum=sha256:091ca86edd29d325d5400c80c110cb51847a092c37c16d101607fc3321
     https://github.com/hashicorp/terraform/archive/58e916f6706597d9d87898f9ecedf811b68c6f29.tar.gz \
     /tmp/terraform.tar.gz
 RUN tar -xzf /tmp/terraform.tar.gz --strip-components=1 -C /src \
+    && go mod edit -require=google.golang.org/grpc@v1.83.2 \
+    && go mod download google.golang.org/grpc \
     && CGO_ENABLED=0 GOTOOLCHAIN=local go build -trimpath \
       -ldflags="-s -w -X github.com/hashicorp/terraform/version.dev=no" \
       -o /bin/terraform .
