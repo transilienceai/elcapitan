@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="El Capitan's measured Azure and AWS S3 remediation golden paths, trust boundaries, customer value, and roadmap.">
+  <meta name="description" content="El Capitan v0.1.0: a public, evidence-bound cloud remediation technical preview with measured Azure and AWS S3 golden paths.">
   <meta name="color-scheme" content="dark">
   <title>El Capitan — Current Product Briefing</title>
   <style>
@@ -506,7 +506,7 @@
     <div class="shell topbar-inner">
       <a class="brand" href="#top" aria-label="El Capitan product briefing home">
         <span class="brand-mark" aria-hidden="true">EC</span>
-        <span class="brand-copy"><strong>El Capitan</strong><span>living capability briefing · Azure + AWS measured</span></span>
+        <span class="brand-copy"><strong>El Capitan</strong><span>v0.1.0 public technical preview · Azure + AWS measured</span></span>
       </a>
       <nav class="nav" aria-label="Briefing sections">
         <a href="#product">Product</a>
@@ -515,7 +515,7 @@
         <a href="#capabilities">Capabilities</a>
         <a href="#value">Customer value</a>
         <a href="#roadmap">Roadmap</a>
-        <a class="status-link" href="#release-gate">Release gated</a>
+        <a class="status-link" href="#release-gate">v0.1.0 public</a>
       </nav>
     </div>
   </header>
@@ -525,18 +525,20 @@
       <div class="shell">
         <div class="hero-grid">
           <div>
-            <p class="eyebrow">Evidence-bound cloud remediation</p>
+            <p class="eyebrow">Evidence-bound cloud remediation · v0.1.0 released</p>
             <h1>Know what is real.<br>Control what happens next.</h1>
             <p class="lede">El Capitan turns Azure and AWS scanner findings into exact resource cases, re-checks supported risks against cloud configuration, explains their business priority, and prepares tightly bounded remediation packages. One Azure test finding and one AWS S3 production finding have now completed the entire human-gated path from live validation to certificate—without broadening execution authority.</p>
             <div class="hero-actions">
               <a class="button primary" href="#product">See how it works <span aria-hidden="true">↓</span></a>
               <a class="button" href="generated/capability-matrix.md">Open the capability matrix</a>
+              <a class="button" href="https://github.com/kkmookhey/elcapitan/releases/tag/v0.1.0">Download v0.1.0 <span aria-hidden="true">↗</span></a>
+              <a class="button" href="https://github.com/transilienceai/elcapitan">Organization repository <span aria-hidden="true">↗</span></a>
             </div>
           </div>
 
           <aside class="boundary-panel" aria-label="Product trust boundary">
             <div class="boundary-head">
-              <div class="signal"><i aria-hidden="true"></i><span>v0.1 foundation · Azure and AWS golden paths measured</span></div>
+              <div class="signal"><i aria-hidden="true"></i><span>v0.1.0 public · Azure and AWS golden paths measured</span></div>
               <h2>Safe by separation</h2>
               <p>The product separates evidence, decisions, human approval, and action authority.</p>
             </div>
@@ -554,7 +556,7 @@
           <article class="metric"><small>Validation controls</small><strong>72</strong><span>35 Azure · 37 AWS</span></article>
           <article class="metric"><small>Planning controls</small><strong>4</strong><span>3 Azure Storage · 1 AWS S3</span></article>
           <article class="metric"><small>Execution controls</small><strong>3</strong><span>2 Azure · 1 AWS S3</span></article>
-          <article class="metric"><small>Current verification</small><strong>745</strong><span>Checkpoint tests passed</span></article>
+          <article class="metric"><small>Current verification</small><strong>748</strong><span>Release-tree tests passed</span></article>
         </div>
       </div>
     </section>
@@ -732,10 +734,11 @@
               <div class="verification-item"><strong>Packages inspected</strong><span>Wheel and source distribution built and passed content checks.</span></div>
               <div class="verification-item"><strong>Container scanned</strong><span>Linux amd64 runtime rejected high and critical fixed vulnerabilities.</span></div>
               <div class="verification-item"><strong>Quickstart passed</strong><span>Authenticated PostgreSQL and UI acceptance completed in CI.</span></div>
+              <div class="verification-item"><strong>v0.1.0 published</strong><span>Reviewer-protected release run 34288616030 produced checksum-verified packages, signed provenance, and a public AMD64/ARM64 image.</span></div>
               <div class="verification-item"><strong>Azure golden path measured</strong><span>One approved Storage change completed live with healthy monitoring, independent revalidation, certificate, handoff, and verified cleanup.</span></div>
               <div class="verification-item"><strong>AWS golden path measured</strong><span>One approved S3 versioning change completed live with healthy monitoring, fresh HTTPS checks, independent revalidation, certificate, and handoff.</span></div>
             </div>
-            <p class="verification-meta">CHECKPOINT VERIFIED 2026-09-08 · AZURE + AWS GOLDEN PATHS MEASURED · VERSION 0.1.0 FOUNDATION</p>
+            <p class="verification-meta">RELEASE VERIFIED 2026-09-08 · AZURE + AWS GOLDEN PATHS MEASURED · VERSION 0.1.0 PUBLIC</p>
           </article>
         </div>
       </div>
@@ -759,7 +762,7 @@
 
         <aside class="release-gate" id="release-gate">
           <div class="release-gate-head"><h3>Publication was digest-bound and reviewer protected.</h3><span class="gate-pill">Release verified</span></div>
-          <p>GitHub Support confirmed deletion and unreferenced-commit cleanup under ticket #4715479 on 3 September 2026. Independent checks found no pull request, advertised pull ref, or accessible copy of the first rewritten commit. The public repository's <code>release</code> environment required reviewer <code>kkmookhey</code>. The owner authorized the v0.1 release-preparation sequence on 8 September 2026; protected run <code>34288616030</code> published the tag, packages, image, and attestations only from the exact committed approval digest.</p>
+          <p>GitHub Support confirmed deletion and unreferenced-commit cleanup under ticket #4715479 on 3 September 2026. Independent checks found no pull request, advertised pull ref, or accessible copy of the first rewritten commit. The public repository's <code>release</code> environment required reviewer <code>kkmookhey</code>. The owner authorized the v0.1 release-preparation sequence on 8 September 2026; <a href="https://github.com/kkmookhey/elcapitan/actions/runs/34288616030">protected run <code>34288616030</code></a> published the exact <a href="https://github.com/kkmookhey/elcapitan/releases/tag/v0.1.0"><code>v0.1.0</code> release</a>, packages, image, and attestations only from the committed approval digest. The public image is <code>ghcr.io/kkmookhey/elcapitan:v0.1.0</code> at immutable index digest <code>sha256:155511fcaab4546e13af396695560a0b7c11f7278d124ac7ef5d89b83d0ea774</code>.</p>
           <div class="gate-steps" aria-label="Completed release gates">
             <div class="gate-step"><strong>01 · COMPLETE</strong>GitHub PR-ref and commit cleanup confirmed</div>
             <div class="gate-step"><strong>02 · COMPLETE</strong>Public visibility and reviewer-protected release environment</div>
@@ -792,7 +795,7 @@
   <footer>
     <div class="shell footer-grid">
       <p>El Capitan is an evidence-bound cloud remediation control plane. This living briefing tracks the current build on the v0.1.0 foundation and intentionally keeps validation, planning, execution, and proof grade separate.</p>
-      <div class="footer-meta">UPDATED 2026-09-08<br>AZURE + AWS GOLDEN PATHS MEASURED<br>STATUS UNRELEASED</div>
+      <div class="footer-meta">RELEASED 2026-09-08<br>AZURE + AWS GOLDEN PATHS MEASURED<br>PUBLIC TECHNICAL PREVIEW · V0.1.0</div>
     </div>
   </footer>
 
