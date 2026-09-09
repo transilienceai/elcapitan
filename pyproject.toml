@@ -26,9 +26,9 @@ dependencies = [
 elcapitan = "elcapitan.cli:main"
 
 [project.urls]
-Documentation = "https://github.com/kkmookhey/elcapitan#readme"
-Issues = "https://github.com/kkmookhey/elcapitan/issues"
-Repository = "https://github.com/kkmookhey/elcapitan"
+Documentation = "https://github.com/transilienceai/elcapitan#readme"
+Issues = "https://github.com/transilienceai/elcapitan/issues"
+Repository = "https://github.com/transilienceai/elcapitan"
 
 [dependency-groups]
 dev = ["pytest==8.3.3"]

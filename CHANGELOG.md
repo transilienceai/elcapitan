@@ -116,5 +116,5 @@ All notable changes to El Capitan are recorded here. Dates use ISO 8601.
 - Broad AWS execution remains deliberately unsupported beyond the separately
   gated S3 object-versioning path.
 
-[Unreleased]: https://github.com/kkmookhey/elcapitan/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/kkmookhey/elcapitan/releases/tag/v0.1.0
+[Unreleased]: https://github.com/transilienceai/elcapitan/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/transilienceai/elcapitan/releases/tag/v0.1.0

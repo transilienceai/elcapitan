@@ -6,9 +6,9 @@ El Capitan v0.1.0 was published on 2026-09-08 as a self-hosted technical
 preview. The immutable release tag resolves to
 `522eabb51fe0394f97516dae2a7f97746e604b0c`.
 
-- Public release: <https://github.com/kkmookhey/elcapitan/releases/tag/v0.1.0>
-- Final CI: <https://github.com/kkmookhey/elcapitan/actions/runs/34288299192>
-- Protected release workflow: <https://github.com/kkmookhey/elcapitan/actions/runs/34288616030>
+- Official public release: <https://github.com/transilienceai/elcapitan/releases/tag/v0.1.0>
+- Originating final CI: <https://github.com/kkmookhey/elcapitan/actions/runs/34288299192>
+- Originating protected release workflow: <https://github.com/kkmookhey/elcapitan/actions/runs/34288616030>
 - Image: `ghcr.io/kkmookhey/elcapitan:v0.1.0`
 - Image index digest: `sha256:155511fcaab4546e13af396695560a0b7c11f7278d124ac7ef5d89b83d0ea774`
 - Image provenance: <https://github.com/kkmookhey/elcapitan/attestations/46105551>
@@ -16,6 +16,15 @@ preview. The immutable release tag resolves to
 The release used committed `RELEASE_APPROVAL.json` with SHA-256
 `0f851d504e6a62a1bd26e9b0c0a9df66281e07e1310e4a220288e6b92ac61b09`.
 The protected environment approval preceded all registry publication.
+
+On the same local release date, the exact repository branches and annotated tag
+were mirrored to `transilienceai/elcapitan`. The four release assets were
+downloaded, checked against `SHA256SUMS`, compared with their GitHub-reported
+digests, and published on the existing mirrored tag. The Transilience release
+is the canonical release location. After that location and its anonymous asset
+downloads were verified, the duplicate personal GitHub Release object was
+retired; the originating tag, CI run, workflow logs, attestations, and image
+remain available as immutable build evidence.
 
 ## Published assets
 

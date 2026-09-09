@@ -60,7 +60,8 @@ contract; deterministic workflow and policy code owns state and side effects.
 
 The first public release is a self-hosted `v0.1.0` technical preview:
 read-only shadow validation by default, explicit capability boundaries, and a
-human-gated remediation package. See the [public release
+human-gated remediation package. Download the [official Transilience
+release](https://github.com/transilienceai/elcapitan/releases/tag/v0.1.0) or see the [public release
 blueprint](docs/public-release-v0.1.md) for its product promise, distribution,
 security gates, and launch checklist. The
 [generated capability/evidence matrix](docs/generated/capability-matrix.md)
