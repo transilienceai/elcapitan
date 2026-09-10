@@ -27,19 +27,146 @@ requires a separately proven connector, identity, health contract, checkpoint,
 and rollback path. Validation support never implies planning or execution
 authority.
 
-## Five-minute local quickstart
+## Start here
 
-Start the read-only shadow console and PostgreSQL with no cloud or model
-credentials:
+El Capitan can analyze a real scanner export without receiving cloud
+credentials. Live AWS or Azure validation is a separate, optional step. Start
+offline and connect a cloud identity only after reviewing the supported versus
+unsupported result.
+
+The offline command accepts one finding or a JSON array containing:
+
+- Prowler OCSF JSON;
+- OCSF Compliance Finding JSON;
+- individual AWS Security Hub ASFF findings.
+
+The browser upload accepts the same inputs and also unwraps AWS Security Hub
+response documents containing a `Findings` array.
+
+El Capitan does not run Prowler or connect directly to a CSPM API in v0.1. You
+must export the findings first. Unknown controls remain visible as unsupported
+and never produce an inferred cloud conclusion.
+
+### Install a source checkout
+
+The commands below require Python 3.12 and
+[`uv`](https://docs.astral.sh/uv/getting-started/installation/):
+
+```bash
+git clone https://github.com/transilienceai/elcapitan.git
+cd elcapitan
+uv sync --locked
+```
+
+The official wheel and source archive are also available from the
+[Transilience v0.1.0 release](https://github.com/transilienceai/elcapitan/releases/tag/v0.1.0).
+Do not deploy the original v0.1.0 OCI image; see the post-publication notice in
+the [release notes](docs/release-notes-v0.1.0.md#post-publication-container-advisory).
+
+### Analyze your own export offline
+
+This is the safest immediately useful path. It makes no AWS, Azure, model,
+approval, scheduling, or execution request:
+
+```bash
+ELCAP_REPORT_ROOT="$(mktemp -d /tmp/elcapitan-shadow.XXXXXX)"
+
+uv run elcapitan shadow-offline-report /path/to/prowler.ocsf.json \
+  --tenant my-security-review \
+  --workdir "$ELCAP_REPORT_ROOT/work" \
+  --json-output "$ELCAP_REPORT_ROOT/portfolio.json" \
+  --markdown-output "$ELCAP_REPORT_ROOT/summary.md"
+
+printf 'Markdown report: %s\n' "$ELCAP_REPORT_ROOT/summary.md"
+printf 'Machine-readable report: %s\n' "$ELCAP_REPORT_ROOT/portfolio.json"
+```
+
+The Markdown report reconciles submitted, failing, passing, and manual records;
+shows supported and unsupported rules; groups observations by exact resource;
+and lists candidates for deterministic live validation. The JSON report
+contains the complete resource-case and transparent-priority details. Both
+outputs are created with mode `0600`; the source export is not modified.
+
+Priority is deliberately labeled **scanner-evidence provisional** until you
+supply business context or perform live validation. A high scanner severity is
+not presented as proof of current exposure or business impact.
+
+### Upload your own export in the browser
+
+To inspect the same portfolio interactively without cloud access:
+
+```bash
+export ELCAPITAN_SHADOW_ACCESS_TOKEN="$(openssl rand -hex 24)"
+uv run elcapitan serve-shadow --workdir .elcapitan-shadow
+```
+
+Open `http://127.0.0.1:8770`, sign in with the generated token, choose
+**Scanner export**, and select your JSON file. The browser accepts at most
+10 MiB or 1,000 findings per upload. Review the format, account and resource
+counts, FAIL/PASS/MANUAL accounting, and supported/unsupported split before
+choosing **Import findings**. Preview makes no cloud request and persists
+nothing; import creates the local workspace and case evidence.
+
+An optional [asset-context manifest](docs/asset-context-manifest.example.json)
+can add exact-resource ownership, environment, criticality, reachability, and
+service context. Joins use exact resource identifiers rather than fuzzy names.
+
+### Optionally revalidate against your cloud
+
+Live validation requires the `aws` or `az` executable and a dedicated,
+least-privilege read-only identity. El Capitan ignores ambient AWS profiles and
+Azure CLI sessions. Supply one complete explicit credential contract to the
+same shell that starts `serve-shadow`.
+
+For a short-lived AWS session:
+
+```bash
+export ELCAP_SCANNER_AWS_ACCESS_KEY_ID='short-lived access key ID'
+export ELCAP_SCANNER_AWS_SECRET_ACCESS_KEY='short-lived secret access key'
+export ELCAP_SCANNER_AWS_SESSION_TOKEN='short-lived session token'
+
+uv run elcapitan connector-preflight --provider aws
+uv run elcapitan capabilities --provider aws
+uv run elcapitan serve-shadow --workdir .elcapitan-shadow
+```
+
+For an Azure service principal limited to the reviewed scope:
+
+```bash
+export ELCAP_SCANNER_AZURE_CLIENT_ID='application client ID'
+export ELCAP_SCANNER_AZURE_CLIENT_SECRET='application client secret'
+export ELCAP_SCANNER_AZURE_TENANT_ID='tenant ID'
+
+uv run elcapitan connector-preflight --provider azure
+uv run elcapitan capabilities --provider azure
+uv run elcapitan serve-shadow --workdir .elcapitan-shadow
+```
+
+`connector-preflight` checks local readiness without making a cloud request.
+After it reports ready, upload and import the export, open one supported case,
+and choose its cloud-check action. Inspect that evidence before running the
+bounded **Check N ready** batch, which is capped at 100 resource cases.
+
+The shadow service exposes no approval, scheduling, model, rollback, or cloud
+mutation endpoint. Do not give it an action identity. Read the full
+[customer shadow-run guide](docs/customer-shadow-run.md) and
+[first customer pilot profile](docs/first-customer-pilot.md) before connecting
+a shared or production environment. If you do not already have a reviewed
+read-only identity, stop after the offline report.
+
+### Optional five-minute synthetic tour
+
+To explore the interface before using your own export, start the read-only
+shadow console and PostgreSQL with no cloud or model credentials:
 
 ```bash
 docker compose up --build --detach --wait
 ```
 
 Open `http://127.0.0.1:8770` and use the local-only token documented in the
-[quickstart](docs/quickstart.md). The checked-in sample is synthetic; the UI
-keeps source type, live outcome, capability authority, and evidence grade
-separate. Run `docker compose down --volumes` when finished.
+[quickstart](docs/quickstart.md). Choose **Try safe sample**. The UI keeps
+source type, live outcome, capability authority, and evidence grade separate.
+Run `docker compose down --volumes` when finished.
 
 ## Browser lifecycle demo
 
@@ -60,10 +187,9 @@ contract; deterministic workflow and policy code owns state and side effects.
 
 The first public release is a self-hosted `v0.1.0` technical preview:
 read-only shadow validation by default, explicit capability boundaries, and a
-human-gated remediation package. Download the [official Transilience
-release](https://github.com/transilienceai/elcapitan/releases/tag/v0.1.0) or see the [public release
-blueprint](docs/public-release-v0.1.md) for its product promise, distribution,
-security gates, and launch checklist. The
+human-gated remediation package. See the
+[public release blueprint](docs/public-release-v0.1.md) for its product promise,
+distribution, security gates, and launch checklist. The
 [generated capability/evidence matrix](docs/generated/capability-matrix.md)
 keeps validation, planning, execution, and proof grade separate for every
 registered control. Release material includes the
@@ -72,31 +198,6 @@ registered control. Release material includes the
 [v0.1.0 release notes](docs/release-notes-v0.1.0.md).
 
 ![Synthetic read-only shadow fleet showing explicit capability boundaries](docs/assets/v0.1/shadow-fleet.png)
-
-## AWS/Azure customer shadow fleet
-
-Run the authenticated, read-only fleet console separately from the action
-plane:
-
-```bash
-export ELCAPITAN_SHADOW_ACCESS_TOKEN='use-a-random-value-with-at-least-24-characters'
-UV_CACHE_DIR=/private/tmp/elcapitan-uv-cache \
-  uv run elcapitan serve-shadow --workdir .elcapitan-shadow
-```
-
-Open `http://127.0.0.1:8770`. The console accepts OCSF, individual AWS
-Security Hub ASFF findings, JSON arrays, and Security Hub response documents.
-It builds a tenant-isolated, risk-ranked portfolio, reports exactly which
-controls have deterministic support, and can validate up to 100 eligible cases
-against live AWS or Azure configuration in one preflighted batch.
-
-The shadow service deliberately has no approval, scheduling, model, or
-execution endpoint. Scanner credentials are accepted only through the
-`ELCAP_SCANNER_AWS_*` or `ELCAP_SCANNER_AZURE_*` environment contract;
-ambient cloud profiles are ignored. See the
-[customer shadow-run guide](docs/customer-shadow-run.md) before connecting a
-real environment. Use the [first customer pilot profile](docs/first-customer-pilot.md)
-to scope the CTO access request and select the initial account or subscription.
 
 ## Human decision plane
 
